@@ -1,33 +1,34 @@
-import * as React from "react"
-
+import { Link } from "react-router-dom"; // ✅ add this
 import { cn } from "@/lib/utils"
 
-
-const sizes = {
-  sm: "h-8 px-3 text-sm",
-  md: "h-10 px-4 text-base",
-  lg: "h-12 px-6 text-lg",
+const hoverEffect = "hover:bg-topbarBorder hover:text-white";
+const types = {
+  type1: cn("h-14 px-2 text-topbarBorder", hoverEffect),
+  type2: "h-14 px-2 bg-topbarBorder text-white",
+  type3: "h-12 w-100 rounded-3xl bg-topbarBorder text-white m-4 shadow-[0px_5px_10px_rgba(0,0,0,0.6)]",
 };
 
-function Button({
-  className,
-  size,
-  children,
-  ...props
-}) {
+function Button({ className, type, children, href, ...props }) {
+  const classes = cn(
+    "inline-flex items-center justify-center rounded-md text-topbarBorder font-sans text-2xl font-bold hover:shadow-[0px_5px_10px_rgba(0,0,0,0.6)] active:scale-95 transition-all duration-150",
+    types[type || "type2"],
+    className
+  );
 
+  if (href) {
+    return (
+      <Link to={href} className={classes} {...props}>
+        {children}
+      </Link>
+    );
+  }
+  // Otherwise render normal button
   return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none transition-colors",
-        sizes[size || "md"],
-        className
-      )}
-      {...props}
-    >
-    {children}
-      </button>
+    <button className={classes} {...props}>
+      {children}
+    </button>
   );
 }
+
 
 export default Button;

@@ -8,17 +8,10 @@ import { AppTopbar } from "@/components/app-topbar"
 
 export default function Layout({ children }) {
   return (
-    // <SidebarProvider>
-    //   <AppSidebar />
-    //   <main>
-    //     <SidebarTrigger />
-    //     {children}
-    //   </main>
-    // </SidebarProvider>
-
-    <AppTopbar />
-    
-
+    <AppTopbar>
+      {children}
+    </AppTopbar>
+  
 
   )
 }
