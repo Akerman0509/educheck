@@ -1,55 +1,36 @@
-
-
-
 import Button from "@/components/ui/button";
 
-
-function AppTopbar({children}){
-    const logo =(
+const logo = (
     <div className="h-full flex items-center justify-between">
-        <img src="/img/logo1.png" className="h-36 object-contain"/>
-    </div>);
-    const MainBar = () => (
-        <div className="w-full h-24 p-4  bg-topbarBg flex items-center flex-none" >
-        <div className=" z-10 h-full ">
-            {logo}
-        </div>
+        <img src="/img/logo1.png" className="h-36 object-contain" />
+    </div>
+);
 
-
-        <div className="flex space-x-4 justify-center flex-1">
-            <Button type="type1" href={"/"} >Trang chủ</Button>
-            <Button type="type1" href={"/School"} >Trường học</Button>
-            <Button type="type1" href={"/Student"} >Sinh viên</Button>
-            {/* <Button size="sm" >Liên hệ</Button> */}
-        </div>
-        <div className="flex items-center">
-            <Button  type="type2" >Login</Button>
-        </div>
-    </div>)
-
-    const BorderLine = () => (
-        <div className="w-full h-1.5 bg-topbarBorder"></div>
-    )
-
+function AppTopbar() {
     return (
-        <>
-            <MainBar />
-            <BorderLine />
-            {children}
-        </>
+        <div className="w-full">
+            <div className="w-full h-24 p-4  bg-topbarBg flex items-center">
+                <div className=" z-10 h-full ">{logo}</div>
 
-    )
+                <div className="flex space-x-4 justify-center flex-1">
+                    <Button type="type1" href={"/"}>
+                        Trang chủ
+                    </Button>
+                    <Button type="type1" href={"/School"}>
+                        Trường học
+                    </Button>
+                    <Button type="type1" href={"/Student"}>
+                        Sinh viên
+                    </Button>
+                    {/* <Button size="sm" >Liên hệ</Button> */}
+                </div>
+                <div className="flex items-center">
+                    <Button type="type2">Login</Button>
+                </div>
+            </div>
+            <div className="w-full h-1.5 bg-topbarBorder"></div>
+        </div>
+    );
 }
 
-
-
-
-
-
-export { 
-    AppTopbar
-
-
-
-
- }
+export { AppTopbar };
