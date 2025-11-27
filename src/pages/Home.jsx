@@ -1,6 +1,7 @@
 import SearchBar from "@/components/ui/searchbar";
 import Button from "@/components/ui/button";
 import PageTitle from "@/components/ui/PageTitle";
+import Table from "@/components/ui/table";
 
 export default function Home() {
     return (
@@ -11,6 +12,8 @@ export default function Home() {
             <Button className="font-semibold" type="type3" href="#">
                 Tra cứu
             </Button>
+
+            <Table />
         </div>
     );
 }
