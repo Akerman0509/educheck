@@ -7,7 +7,7 @@ import UploadBox from "@/components/ui/UploadBox";
 
 
 export default function SchoolPage() {
-  const [image, setImage] = useState(null);
+  const [filePDF, setFilePDF] = useState(null);
 
 
   const [formData, setFormData] = useState({
@@ -21,11 +21,6 @@ export default function SchoolPage() {
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
-  const handleImageUpload = (file) => {
-    setImage(URL.createObjectURL(file));
-  };
-
 
   return (
     <div className="flex flex-col justify-center items-center w-full">
@@ -62,7 +57,7 @@ export default function SchoolPage() {
 
         {/* UPLOAD */}
         <div className="flex flex-col">
-          <UploadBox onChange={handleImageUpload} />
+          <UploadBox onChange={setFilePDF} />
         </div>
       </div>
 
@@ -71,7 +66,7 @@ export default function SchoolPage() {
           className="font-semibold mt-3"
           type="type3"
           //onClick={() => {}}
-          onClick={() => console.log({ ...formData, image })}
+          onClick={() => console.log({ ...formData, filePDF })}
         >
           Phát hành
         </Button>
