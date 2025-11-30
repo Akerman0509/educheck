@@ -8,7 +8,9 @@ export default function Layout({ children }) {
         <div className="flex flex-col min-h-screen">
             <AppTopbar />
 
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 flex flex-col justify-center items-center">
+                {children}
+            </main>
 
             <footer className="w-full h-10" />
         </div>
