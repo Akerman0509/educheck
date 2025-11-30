@@ -1,7 +1,10 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("UniversityDegreesSBTModule", (m) => {
-  const UniversityDegreesSBT = m.contract("UniversityDegreesSBT");
+  const sbt = m.contract("UniversityDegreesSBT", [
+    "University Degrees SBT", // name
+    "UDSBT", // symbol
+  ]);
 
-  return { UniversityDegreesSBT };
+  return { sbt };
 });
