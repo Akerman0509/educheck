@@ -61,7 +61,7 @@ export default function UploadBox({ onChange }) {
         <img src={preview} className="w-full h-full object-cover" />
       ) : (
         <div className="flex flex-col items-center text-gray-600">
-          <img src="/upload.png" className="w-10 h-10" />
+          <img src="/imgButton/upload.png" className="w-10 h-10" />
           <div className="mt-1 text-sm text-center">
             Upload văn bằng (ảnh hoặc PDF)
           </div>
