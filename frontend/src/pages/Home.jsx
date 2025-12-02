@@ -51,7 +51,6 @@ export default function Home() {
             <Button
                 className="font-semibold"
                 type="type3"
-                href="#"
                 onClick={() => handleSearch(dataFilter)}
             >
                 Tra cứu
