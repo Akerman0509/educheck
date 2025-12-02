@@ -4,6 +4,7 @@ import Button from "@/components/ui/button";
 import PageTitle from "@/components/ui/PageTitle";
 import InputField from "@/components/ui/inputField";
 import UploadBox from "@/components/ui/UploadBox";
+import { formatAndValidateDate } from "@/utils/dateFormat";
 
 export default function SchoolPage() {
   const [filePDF, setFilePDF] = useState(null);
@@ -47,11 +48,13 @@ export default function SchoolPage() {
             onChange={(value) => handleInputChange("hoTen", value)}
           />
           <InputField
-            placeholder="Ngày sinh"
-            type="date"
-            onChange={(value) =>
-              handleInputChange("ngaySinh", value)
-            }
+            placeholder="Ngày sinh (dd/mm/yyyy)"
+            type="text"
+            value={formData.ngaySinh}
+            onChange={(e) => {
+              const newValue = formatAndValidateDate(e.target.value);
+              handleInputChange("ngaySinh", newValue);
+            }}
           />
           <InputField
             placeholder="Năm TN"
