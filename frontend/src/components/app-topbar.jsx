@@ -1,5 +1,5 @@
 import Button from "@/components/ui/button";
-
+import { NavLink } from "react-router-dom";
 const logo = (
     <div className="h-full flex items-center justify-between">
         <img src="/img/logo1.png" className="h-36 object-contain" />
@@ -13,15 +13,30 @@ function AppTopbar() {
                 <div className=" z-10 h-full ">{logo}</div>
 
                 <div className="flex space-x-4 justify-center flex-1">
-                    <Button type="type1" href={"/"}>
-                        Trang chủ
-                    </Button>
-                    <Button type="type1" href={"/School"}>
-                        Trường học
-                    </Button>
-                    <Button type="type1" href={"/Student"}>
-                        Sinh viên
-                    </Button>
+                    <NavLink to="/">
+                        {({ isActive }) => (
+                            <Button type={isActive ? "type2" : "type1"}>
+                                Trang chủ
+                            </Button>
+                        )}
+                    </NavLink>
+
+                    <NavLink to="/School">
+                        {({ isActive }) => (
+                            <Button type={isActive ? "type2" : "type1"}>
+                                Trường học
+                            </Button>
+                        )}
+                    </NavLink>
+
+                    <NavLink to="/Student">
+                        {({ isActive }) => (
+                            <Button type={isActive ? "type2" : "type1"}>
+                                Sinh viên
+                            </Button>
+                        )}
+                    </NavLink>
+
                     {/* <Button size="sm" >Liên hệ</Button> */}
                 </div>
                 <div className="flex items-center">
