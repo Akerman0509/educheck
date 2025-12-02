@@ -11,11 +11,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
  * Component render một trang đầu tiên của file PDF.
  * @param {string} fileSrc - Đường dẫn tới file PDF.
  */
-export default function PdfRenderer({ fileSrc }) {
+export default function PdfRenderer({ fileSrc, title = "Document Preview" }) {
     const [numPages, setNumPages] = useState(null);
     const [loadError, setLoadError] = useState(null);
+    const [pageWidth, setPageWidth] = useState(600);
+    const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
-    const [pageWidth, setPageWidth] = useState(600); // default
 
     const onDocumentLoadSuccess = ({ numPages }) => {
         setNumPages(numPages);
@@ -25,42 +26,88 @@ export default function PdfRenderer({ fileSrc }) {
         setLoadError(error.message);
     };
 
-    // Update page width to container width
+    // Resize theo container
     useEffect(() => {
         const handleResize = () => {
             if (containerRef.current) {
                 setPageWidth(containerRef.current.clientWidth);
             }
         };
-        handleResize(); // initial
+
+        handleResize();
+
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
-    }, []);
+    }, [isOpen]);
 
     return (
-        <div
-            ref={containerRef}
-            className="pdf-container rounded shadow border bg-gray-100 flex flex-col items-center p-2 overflow-auto"
-            style={{ maxHeight: "80vh" }}
-        >
-            <Document
-                file={fileSrc}
-                onLoadSuccess={onDocumentLoadSuccess}
-                onLoadError={onDocumentLoadError}
-                loading={
-                    <div className="h-96 flex items-center justify-center text-gray-500">
-                        Đang tải văn bằng...
-                    </div>
-                }
+        <>
+            {/* ✅ Preview nhỏ - click để zoom */}
+            <div
+                onClick={() => setIsOpen(true)}
+                className="cursor-zoom-in rounded shadow border bg-gray-100 p-2 w-fit"
             >
-                {numPages && <Page pageNumber={1} width={pageWidth} />}
-            </Document>
+                <Document file={fileSrc}>
+                    <Page pageNumber={1} width={300} />
+                </Document>
+                <p className="text-sm text-center text-gray-500 mt-2">
+                    {title}
+                </p>
+            </div>
 
-            {loadError && (
-                <div className="text-red-500 p-4">
-                    Không thể tải file PDF: {loadError}
+            {/* ✅ Modal Zoom */}
+            {isOpen && (
+                <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+                    <div className="bg-white w-[60vw] h-[90vh] rounded-lg shadow-lg flex flex-col">
+                        {/* ✅ Header */}
+                        <div className="flex justify-between items-center p-4 border-b">
+                            <h2 className="font-semibold text-lg">{title}</h2>
+                            <button
+                                className="text-red-500 font-semibold"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                Đóng
+                            </button>
+                        </div>
+
+                        {/* ✅ PDF Scroll area */}
+                        <div
+                            ref={containerRef}
+                            className="flex-1 overflow-auto flex flex-col items-center bg-gray-100 p-4"
+                        >
+                            <Document
+                                file={fileSrc}
+                                onLoadSuccess={onDocumentLoadSuccess}
+                                onLoadError={onDocumentLoadError}
+                                loading={
+                                    <div className="h-96 flex items-center justify-center text-gray-500">
+                                        Đang tải PDF...
+                                    </div>
+                                }
+                            >
+                                {numPages &&
+                                    Array.from(
+                                        new Array(numPages),
+                                        (_, index) => (
+                                            <Page
+                                                key={index}
+                                                pageNumber={index + 1}
+                                                width={pageWidth}
+                                                className="mb-6"
+                                            />
+                                        )
+                                    )}
+                            </Document>
+
+                            {loadError && (
+                                <div className="text-red-500 p-4">
+                                    Không thể tải file PDF: {loadError}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
-        </div>
+        </>
     );
 }
