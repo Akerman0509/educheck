@@ -6,7 +6,7 @@ export default function ImgGrid({ files }) {
         <div className="grid grid-cols-4 gap-2">
             {files.map((file, index) => (
                 <div key={index}>
-                    <PdfRenderer fileSrc={file.src} />
+                    <PdfRenderer fileSrc={file.src} title={file.alt} />
                 </div>
             ))}
         </div>
