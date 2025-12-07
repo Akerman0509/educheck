@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Student from './pages/Student';
 import AddPage from './pages/School/AddPage';
 import ListPage from './pages/School/ListPage';
+import Admin from './pages/Admin';  
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
             <Route path="/student" element={<Student />} />
             <Route path="/School/AddPage" element={<AddPage />} />
             <Route path="/School" element={<ListPage />} />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
       </Layout>
     </Router>
