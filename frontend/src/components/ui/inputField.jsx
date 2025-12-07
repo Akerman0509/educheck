@@ -6,7 +6,7 @@ export default function InputField({ placeholder, type, onChange, value, ...prop
                 type={type}
                 placeholder={placeholder}
                 value={value}
-                onChange={onChange}                 
+                onChange={(e) => onChange && onChange(e.target.value)}
                 {...props}
             />
         </div>
