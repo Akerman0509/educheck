@@ -51,8 +51,8 @@ export default function SchoolPage() {
             placeholder="Ngày sinh (dd/mm/yyyy)"
             type="text"
             value={formData.ngaySinh}
-            onChange={(e) => {
-              const newValue = formatAndValidateDate(e.target.value);
+            onChange={(value) => {
+              const newValue = formatAndValidateDate(value);
               handleInputChange("ngaySinh", newValue);
             }}
           />

@@ -1,5 +1,7 @@
 import Button from "@/components/ui/button";
 import { NavLink } from "react-router-dom";
+import WalletButton from "./ui/WalletButton";
+
 const logo = (
     <div className="h-full flex items-center justify-between">
         <img src="/img/logo1.png" className="h-36 object-contain" />
@@ -40,7 +42,7 @@ function AppTopbar() {
                     {/* <Button size="sm" >Liên hệ</Button> */}
                 </div>
                 <div className="flex items-center">
-                    <Button type="type2">Login</Button>
+                    <WalletButton />
                 </div>
             </div>
             <div className="w-full h-1.5 bg-topbarBorder"></div>

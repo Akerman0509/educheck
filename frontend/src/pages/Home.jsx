@@ -2,6 +2,7 @@ import SearchBar from "@/components/ui/searchbar";
 import Button from "@/components/ui/button";
 import PageTitle from "@/components/ui/PageTitle";
 import Table from "@/components/ui/table";
+import WalletButton from "@/components/ui/WalletButton";
 
 import { useState } from "react";
 
