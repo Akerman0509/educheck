@@ -1,9 +1,5 @@
 import { ethers } from 'ethers';
 
-//load .env variables
-import dotenv from 'dotenv';
-dotenv.config();
-
 class BlockchainService {
   static instance = null;
 
@@ -42,6 +38,13 @@ class BlockchainService {
   // Connect wallet and upgrade to signer
   async connectWallet() {
     if (!this.provider) throw new Error('BlockchainService not initialized');
+
+    // Check chainId before requesting accounts
+    const expectedChainId = '0x7a69'; // 31337 in hex
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    if (chainId !== expectedChainId) {
+      throw new Error('MetaMask is not connected to the correct network. Please switch to Localhost 8545 (chainId 31337) in MetaMask.');
+    }
 
     const accounts = await this.provider.send('eth_requestAccounts', []);
     if (accounts.length === 0) throw new Error('No account found');
@@ -154,7 +157,7 @@ class BlockchainService {
 
     return {
       success: true,
-      transactionHash: receipt.transactionHash,
+      transactionHash: receipt.hash,
       blockNumber: receipt.blockNumber,
       tokenId: finalTokenId,
       event,
@@ -229,7 +232,7 @@ class BlockchainService {
   // Fetch full metadata from IPFS URI (handles ipfs:// and https:// URLs)
   async fetchMetadataFromURI(metadataURI) {
     try {
-      let url = `https://${process.env.GATEWAY_URL}/ipfs/` + metadataURI;
+      let url = `https://${import.meta.env.VITE_GATEWAY_URL}/ipfs/` + metadataURI;
       
       const response = await fetch(url);
       if (!response.ok) {

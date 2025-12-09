@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { Wallet, LogOut, CheckCircle } from "lucide-react";
+import { useWallet } from "@/hooks/useWallet";
 
 export default function WalletConnect({ onClose, onConnect }) {
+    const wallet = useWallet();
     const [account, setAccount] = useState(null);
     const [showWalletMenu, setShowWalletMenu] = useState(false);
     const [walletType, setWalletType] = useState(null);
@@ -86,7 +88,7 @@ export default function WalletConnect({ onClose, onConnect }) {
                         {showWalletMenu && (
                             // <div className="absolute top-full mt-2 w-full bg-white rounded-xl">
                             <button
-                                onClick={connectMetaMask}
+                                onClick={wallet.connect}
                                 className="w-full px-6 py-2 mt-2 text-left hover:bg-gray-200 transition-colors flex items-center space-x-3  border-gray-100 bg-white rounded-xl"
                             >
                                 <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
