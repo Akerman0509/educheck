@@ -1,14 +1,10 @@
 import { PinataSDK } from "pinata";
 
-// load .env variables
-import dotenv from "dotenv";
-dotenv.config();
-
 class IpfsService {
   constructor() {
     this.pinata = new PinataSDK({
-      pinataJwt: process.env.PINATA_JWT,
-      pinataGateway: process.env.GATEWAY_URL,
+      pinataJwt: import.meta.env.VITE_PINATA_JWT,
+      pinataGateway: import.meta.env.VITE_GATEWAY_URL,
     });
     
 
@@ -59,7 +55,7 @@ class IpfsService {
 
       return {
         cid: upload.cid,
-        url: `https://${process.env.GATEWAY_URL}/ipfs/${upload.cid}`,
+        url: `https://${import.meta.env.VITE_GATEWAY_URL}/ipfs/${upload.cid}`,
       };
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -81,7 +77,7 @@ class IpfsService {
 
       return {
         cid: upload.cid,
-        url: `https://${process.env.GATEWAY_URL}/ipfs/${upload.cid}`,
+        url: `https://${import.meta.env.VITE_GATEWAY_URL}/ipfs/${upload.cid}`,
       };
     } catch (error) {
       console.error("Error uploading metadata:", error);
