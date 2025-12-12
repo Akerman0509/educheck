@@ -3,6 +3,8 @@ import TableSchool from "@/components/ui/tableScchool";
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import SearchBar from "@/components/ui/searchBar";
+
 
 const tempData = [
     {
@@ -13,7 +15,7 @@ const tempData = [
         "Ngành ĐT": "Công nghệ thông tin",
     },
     {
-        "Số hiệu văn bằng": "123456",
+        "Số hiệu văn bằng": "789",
         "Họ và tên": "Nguyễn Văn A",
         "Ngày sinh": "01/01/1990",
         "Năm TN": "2012",
@@ -28,6 +30,8 @@ const tempData = [
 
 export default function StudentPage() {
     const [data, setData] = useState([]);
+    const [filterText, setFilterText] = useState("");
+    
     const navigate = useNavigate();
     const fetchData = (studentWalletUrl) => {
         // const result = fetchWithUrl(
@@ -38,6 +42,18 @@ export default function StudentPage() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    const handleFilterChange = (value) => {
+        setFilterText(value);
+
+        const filtered = tempData.filter((item) =>
+            item["Số hiệu văn bằng"]
+                .toLowerCase()
+                .includes(value.toLowerCase())
+        );
+
+        setData(filtered);
+    };
 
     return (
         <>
@@ -52,9 +68,10 @@ export default function StudentPage() {
             </div>
             <div className="flex flex-col justify-center items-center">
                 <PageTitle>Danh sách văn bằng</PageTitle>
-                <TableSchool data={data} />
+                <SearchBar onChange={handleFilterChange} />
             </div>
-            <div className="p-8"></div>
+            <div className="p-4"></div>
+            <TableSchool data={data} />
         </>
     );
 }
