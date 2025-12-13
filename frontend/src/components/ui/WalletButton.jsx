@@ -20,8 +20,6 @@ export default function WalletButton() {
     const [open, setOpen] = useState(false);
     const [account, setAccount] = useState(null);
     const connected = !!account;
-    console.log("connected = ", { connected });
-    console.log("acc = ", { account });
     return (
         <>
             <button
