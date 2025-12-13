@@ -1,8 +1,9 @@
 import { useState } from "react";
 import WalletConnect from "./WalletConnect";
 import { CheckCircle, Wallet } from "lucide-react";
+import { useBlockchain } from "@/context/BlockchainContext";
 
-function WalletConnectModal({ onClose, onConnect }) {
+function WalletConnectModal({ onClose }) {
     return (
         <div
             className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center"
@@ -10,7 +11,7 @@ function WalletConnectModal({ onClose, onConnect }) {
         >
             {/* stop click bubbling */}
             <div onClick={(e) => e.stopPropagation()}>
-                <WalletConnect onClose={onClose} onConnect={onConnect} />
+                <WalletConnect onClose={onClose} />
             </div>
         </div>
     );
@@ -18,24 +19,22 @@ function WalletConnectModal({ onClose, onConnect }) {
 
 export default function WalletButton() {
     const [open, setOpen] = useState(false);
-    const [account, setAccount] = useState(null);
-    const connected = !!account;
+    const blockchain = useBlockchain();
     return (
         <>
             <button
                 onClick={() => setOpen(true)}
                 className={`flex items-center rounded-md font-sans text-xl font-medium  active:scale-95 transition-all duration-150 p-2 text-white 
             ${
-                connected
+                blockchain.isWalletConnected
                     ? "bg-green-600  hover:bg-green-700"
                     : "bg-topbarBorder  hover:bg-blue-700 "
             }
             `}
             >
-                {connected ? (
+                {blockchain.isWalletConnected ? (
                     <>
                         <CheckCircle className="w-7 h-7 m-2" />
-                        <div>Connected</div>
                     </>
                 ) : (
                     <>
@@ -45,12 +44,7 @@ export default function WalletButton() {
                 )}
             </button>
 
-            {open && (
-                <WalletConnectModal
-                    onClose={() => setOpen(false)}
-                    onConnect={(account) => setAccount(account)}
-                />
-            )}
+            {open && <WalletConnectModal onClose={() => setOpen(false)} />}
         </>
     );
 }

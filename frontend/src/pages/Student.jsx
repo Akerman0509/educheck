@@ -4,8 +4,6 @@ import PageTitle from "@/components/ui/PageTitle";
 import Table from "@/components/ui/table";
 import ImgGrid from "@/components/ui/imgGrid";
 import { useEffect, useState } from "react";
-import PdfRenderer from "@/components/ui/PdfRenderer";
-import { useWallet } from "@/hooks/useWallet";
 import { useBlockchain } from "@/context/BlockchainContext";
 
 export default function StudentPage() {
@@ -14,18 +12,13 @@ export default function StudentPage() {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-    const wallet = useWallet();
     const { blockchainService } = useBlockchain();
+    const blockchain = useBlockchain();
 
     const fetchMyDegrees = async () => {
         try {
             setLoading(true);
             setErrorMsg("");
-
-            // Connect wallet if needed
-            if (!wallet.isConnected) {
-                await wallet.connect();
-            }
 
             // Fetch degrees from blockchain
             const degrees = await blockchainService.getMyDegrees();
@@ -41,20 +34,24 @@ export default function StudentPage() {
                 degrees.map(async (degree, index) => {
                     let metadata = {};
                     try {
-                        metadata = await blockchainService.fetchMetadataFromURI(degree.metadataURI);
+                        metadata = await blockchainService.fetchMetadataFromURI(
+                            degree.metadataURI
+                        );
                     } catch (err) {
                         console.error("Failed to fetch metadata:", err);
                     }
                     return {
-                        "STT": index + 1,
-                        "Số hiệu văn bằng": metadata.certificateNumber || '',
-                        "Họ và tên": metadata.studentName || '',
-                        "Ngày sinh": metadata.dateOfBirth || '',
-                        "Năm TN": metadata.graduationYear || '',
+                        STT: index + 1,
+                        "Số hiệu văn bằng": metadata.certificateNumber || "",
+                        "Họ và tên": metadata.studentName || "",
+                        "Ngày sinh": metadata.dateOfBirth || "",
+                        "Năm TN": metadata.graduationYear || "",
                         "Ngành ĐT": degree.fieldOfStudy,
-                        "Trường": degree.universityName,
+                        Trường: degree.universityName,
                         "Loại bằng": degree.degreeName,
-                        "Ngày cấp": new Date(degree.issuedAt).toLocaleDateString('vi-VN'),
+                        "Ngày cấp": new Date(
+                            degree.issuedAt
+                        ).toLocaleDateString("vi-VN"),
                         "Hiệu lực": "Còn hiệu lực",
                     };
                 })
@@ -66,10 +63,15 @@ export default function StudentPage() {
             const pdfFiles = await Promise.all(
                 degrees.map(async (degree) => {
                     try {
-                        const metadata = await blockchainService.fetchMetadataFromURI(degree.metadataURI);
+                        const metadata =
+                            await blockchainService.fetchMetadataFromURI(
+                                degree.metadataURI
+                            );
                         const fileCID = metadata.degreeFileCID;
                         return {
-                            src: `https://${import.meta.env.VITE_GATEWAY_URL}/ipfs/${fileCID}`,
+                            src: `https://${
+                                import.meta.env.VITE_GATEWAY_URL
+                            }/ipfs/${fileCID}`,
                             alt: `${degree.universityName} - ${degree.degreeName}`,
                         };
                     } catch (err) {
@@ -79,8 +81,7 @@ export default function StudentPage() {
                 })
             );
 
-            setImgFiles(pdfFiles.filter(f => f !== null));
-
+            setImgFiles(pdfFiles.filter((f) => f !== null));
         } catch (error) {
             setErrorMsg(`Error: ${error.message}`);
             console.error("Failed to fetch degrees:", error);
@@ -90,29 +91,29 @@ export default function StudentPage() {
     };
 
     useEffect(() => {
-        if (wallet.isConnected) {
-            fetchMyDegrees();
-        }
-    }, [wallet.isConnected]);
+        if (!blockchain.isWalletConnected) return;
+        fetchMyDegrees();
+    }, [blockchain.isWalletConnected]);
 
     return (
         <>
             <div className="flex flex-col justify-center items-center">
                 <PageTitle>Văn bằng của tôi</PageTitle>
 
-                {!wallet.isConnected && (
+                {!blockchain.isWalletConnected && (
                     <Button
                         type="type3"
-                        onClick={() => wallet.connect()}
+                        onClick={() => blockchain.connectWallet()}
                         className="mb-4"
                     >
                         Connect Wallet
                     </Button>
                 )}
 
-                {wallet.isConnected && (
+                {blockchain.isWalletConnected && (
                     <p className="text-sm text-gray-600 mb-4">
-                        {wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}
+                        {blockchain.userAddress?.slice(0, 6)}...
+                        {blockchain.userAddress?.slice(-4)}
                     </p>
                 )}
 
@@ -125,7 +126,10 @@ export default function StudentPage() {
                 {data.length > 0 ? (
                     <Table data={data} />
                 ) : (
-                    !loading && wallet.isConnected && <p className="text-gray-500">No degrees found</p>
+                    !loading &&
+                    blockchain.isWalletConnected && (
+                        <p className="text-gray-500">No degrees found</p>
+                    )
                 )}
             </div>
             <div className="p-8"></div>

@@ -1,6 +1,8 @@
 import Button from "@/components/ui/button";
-import { NavLink } from "react-router-dom";
 import WalletButton from "./ui/WalletButton";
+import { NavLink, useNavigate } from "react-router-dom";
+
+import { useBlockchain } from "@/context/BlockchainContext";
 
 const logo = (
     <div className="h-full flex items-center justify-between">
@@ -9,6 +11,14 @@ const logo = (
 );
 
 function AppTopbar() {
+    const blockchain = useBlockchain();
+
+    const guardNavigation = (e) => {
+        if (!blockchain.isWalletConnected) {
+            e.preventDefault(); // 🔑 URL does NOT change
+            window.alert("Please connect your wallet first.");
+        }
+    };
     return (
         <div className="w-full">
             <div className="w-full h-24 p-4  bg-topbarBg flex items-center">
@@ -22,24 +32,22 @@ function AppTopbar() {
                             </Button>
                         )}
                     </NavLink>
-
-                    <NavLink to="/School">
+                    {/* protected */}
+                    <NavLink to="/School" onClick={guardNavigation}>
                         {({ isActive }) => (
                             <Button type={isActive ? "type2" : "type1"}>
                                 Trường học
                             </Button>
                         )}
                     </NavLink>
-
-                    <NavLink to="/Student">
+                    {/* protected */}
+                    <NavLink to="/Student" onClick={guardNavigation}>
                         {({ isActive }) => (
                             <Button type={isActive ? "type2" : "type1"}>
                                 Sinh viên
                             </Button>
                         )}
                     </NavLink>
-
-                    {/* <Button size="sm" >Liên hệ</Button> */}
                 </div>
                 <div className="flex items-center">
                     <WalletButton />

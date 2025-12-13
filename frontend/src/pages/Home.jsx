@@ -2,7 +2,7 @@ import SearchBar from "@/components/ui/searchbar";
 import Button from "@/components/ui/button";
 import PageTitle from "@/components/ui/PageTitle";
 import Table from "@/components/ui/table";
-import WalletButton from "@/components/ui/WalletButton";
+import { useBlockchain } from "@/context/BlockchainContext";
 
 import { useState } from "react";
 
@@ -45,9 +45,13 @@ export default function Home() {
         setDataFilter(value);
     };
 
+    const blockchain = useBlockchain();
+
+    const a = "blockchain connected status: " + blockchain.isWalletConnected;
     return (
         <div className="flex flex-col justify-center items-center">
             <PageTitle>Tra cứu văn bằng</PageTitle>
+            {/* <p>{a}</p> */}
             <SearchBar onChange={handleFilterChange} />
             <Button
                 className="font-semibold"

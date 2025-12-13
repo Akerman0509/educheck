@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { Wallet, LogOut, CheckCircle } from "lucide-react";
-import { useWallet } from "@/hooks/useWallet";
+import { useBlockchain } from "@/context/BlockchainContext";
 
-export default function WalletConnect({ onClose, onConnect }) {
-    const wallet = useWallet();
-    const [account, setAccount] = useState(null);
+export default function WalletConnect({ onClose }) {
+    const blockchain = useBlockchain();
     const [showWalletMenu, setShowWalletMenu] = useState(false);
     const [walletType, setWalletType] = useState(null);
 
@@ -13,39 +12,9 @@ export default function WalletConnect({ onClose, onConnect }) {
     }, []);
 
     const checkIfWalletIsConnected = async () => {
-        if (window.ethereum) {
-            const accounts = await window.ethereum.request({
-                method: "eth_accounts",
-            });
-            if (accounts.length > 0) {
-                const connectedAccount = accounts[0];
-
-                setAccount(connectedAccount);
-                onConnect(connectedAccount);
-                setWalletType("MetaMask");
-            }
-        }
-    };
-
-    const connectMetaMask = async () => {
-        try {
-            const accounts = await window.ethereum.request({
-                method: "eth_requestAccounts",
-            });
-            setAccount(accounts[0]);
-            onConnect(account);
-            console.log("change account 2");
-
+        if (blockchain.isWalletConnected) {
             setWalletType("MetaMask");
-            setShowWalletMenu(false);
-        } catch (err) {
-            alert("Failed to connect MetaMask");
         }
-    };
-
-    const disconnect = () => {
-        setAccount(null);
-        setWalletType(null);
     };
 
     function formatAddress(addr) {
@@ -76,7 +45,7 @@ export default function WalletConnect({ onClose, onConnect }) {
                     </p>
                 </div>
 
-                {!account ? (
+                {!blockchain.userAddress ? (
                     <div className="relative">
                         <button
                             onClick={() => setShowWalletMenu(!showWalletMenu)}
@@ -88,7 +57,7 @@ export default function WalletConnect({ onClose, onConnect }) {
                         {showWalletMenu && (
                             // <div className="absolute top-full mt-2 w-full bg-white rounded-xl">
                             <button
-                                onClick={wallet.connect}
+                                onClick={blockchain.connectWallet}
                                 className="w-full px-6 py-2 mt-2 text-left hover:bg-gray-200 transition-colors flex items-center space-x-3  border-gray-100 bg-white rounded-xl"
                             >
                                 <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -115,7 +84,7 @@ export default function WalletConnect({ onClose, onConnect }) {
                                 <CheckCircle className="w-5 h-5 text-green-400" />
                             </div>
                             <div className="text-white font-mono">
-                                {formatAddress(account)}
+                                {formatAddress(blockchain.userAddress)}
                             </div>
                         </div>
 
