@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract UniversityDegreesSBT is ERC721, AccessControl {
     uint256 private _tokenIdCounter = 1;
+    uint256 private _snapshotIdCounter = 0;
 
     bytes32 public constant MINISTRY_ROLE = keccak256("MINISTRY_ROLE");
     bytes32 public constant UNIVERSITY_ROLE = keccak256("UNIVERSITY_ROLE");
@@ -43,6 +44,17 @@ contract UniversityDegreesSBT is ERC721, AccessControl {
         uint256 indexed tokenId,
         address indexed to,
         address indexed issuer
+    );
+    event DegreeRevoked(
+        uint256 indexed tokenId,
+        address indexed student,
+        address indexed revoker,
+        uint256 revokedAt
+    );
+    event StateSnapshot(
+        uint256 indexed snapshotId,
+        uint256 totalDegrees,
+        uint256 timestamp
     );
 
     constructor(
@@ -191,6 +203,9 @@ contract UniversityDegreesSBT is ERC721, AccessControl {
 
         address owner = ownerOf(tokenId);
 
+        // Emit event before revoking
+        emit DegreeRevoked(tokenId, owner, msg.sender, block.timestamp);
+
         // remove tokenId from student's list (simple but preserves order by swapping)
         uint256[] storage list = _degreesOfStudent[owner];
         for (uint256 i = 0; i < list.length; ++i) {
@@ -204,6 +219,25 @@ contract UniversityDegreesSBT is ERC721, AccessControl {
         // delete degree data & burn token
         delete _degreeData[tokenId];
         _burn(tokenId);
+    }
+
+    // ==========================
+    // State Snapshot (for backup/recovery)
+    // ==========================
+    /// @notice Ministry creates a state snapshot for backup purposes
+    /// @dev This only emits an event; actual snapshot creation happens off-chain
+    function createStateSnapshot() external onlyRole(MINISTRY_ROLE) {
+        uint256 totalDegrees = 0;
+        uint256 totalSupply = _tokenIdCounter - 1;
+        
+        // Count active degrees (non-revoked)
+        for (uint256 i = 1; i <= totalSupply; i++) {
+            if (_ownerOf(i) != address(0)) {
+                totalDegrees++;
+            }
+        }
+        
+        emit StateSnapshot(_snapshotIdCounter++, totalDegrees, block.timestamp);
     }
 
     // ==========================
