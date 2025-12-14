@@ -18,7 +18,11 @@ app.use(express.json());
 app.use("/api", routes);
 
 // Connect to DB
-connectDB();
+connectDB().then(() => {
+    // Start Indexer after DB connection
+    const { startIndexer } = require("./services/indexer.service.js");
+    startIndexer();
+});
 
 app.listen(3000, () => {
     console.log("Server running on 3000");
