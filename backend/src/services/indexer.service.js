@@ -4,17 +4,19 @@ const mongoose = require("mongoose");
 
 // Load Models
 const Degree = require("../models/Degree.schema.js");
-const Snapshot = require("../models/Snapshot.schema.js");
+const Snapshot = require("../models/StateSnapshot.schema.js");
 const SyncStatus = require("../models/SyncStatus.schema.js");
 
 // Configuration
-const RPC_URL = process.env.RPC_URL;
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
-const PINATA_API_KEY = process.env.PINATA_API_KEY;
-const PINATA_API_SECRET = process.env.PINATA_API_SECRET;
+// Pinata setup needs to be delayed or lazy as well if we want to mock keys
+// But pinata usage is inside handlers.
+// Let's keep pinata instance global but check keys inside handlers if valid? 
+// Or just move all config inside.
 
 // Pinata Setup
-const pinata = new pinataSDK(PINATA_API_KEY, PINATA_API_SECRET);
+const pinata = new pinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET);
+
+
 
 // Contract ABI (Events only)
 const ABI = [
@@ -32,6 +34,9 @@ async function startIndexer() {
     try {
         console.log("🚀 Starting Indexer Service...");
         
+        const RPC_URL = process.env.RPC_URL;
+        const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
+
         if (!RPC_URL || !CONTRACT_ADDRESS) {
             console.error("❌ Missing RPC_URL or CONTRACT_ADDRESS in .env");
             return;
@@ -43,7 +48,7 @@ async function startIndexer() {
         console.log(`📡 Connected to blockchain: ${RPC_URL}`);
         console.log(`📄 Contract: ${CONTRACT_ADDRESS}`);
 
-        // TODO: Sync historical events here if needed (omitted for brevity in basic version)
+        // Sync missing blocks logic would go here
         
         // Listen for live events
         contract.on("DegreeIssued", handleDegreeIssued);
@@ -62,18 +67,19 @@ async function handleDegreeIssued(tokenId, student, issuer, event) {
     console.log(`📖 Event: DegreeIssued (Token ID: ${tokenId})`);
     
     try {
-        // 1. Fetch data from blockchain
-        // Note: _degreeData is internal in your contract, you might need a getter if it's not public.
-        // Assuming there's a getter or using the tuple access:
-        // If _degreeData is private, you need a public getter in contract like getDegree(id).
-        // For now, let's assume we can get it via the custom getter you checked before or tokenURI.
-        
-        // Using tokenURI as primary source for metadata
+        // 1. Fetch metadata URI from contract
         const metadataURI = await contract.tokenURI(tokenId);
+        
+        // 2. Fetch detailed struct data using the getter
+        // Note: We need a public getter for the struct in the contract.
+        // Assuming your contract has getDegreesOf or similar. Since we don't have a single-degree getter yet,
+        // we will rely on metadataURI for now or fetch the student's list to find this specific one (inefficient but works).
+        // OPTIMIZATION: Ideally, add `function getDegree(uint256 tokenId) external view returns (Degree memory)` to contract.
+        // For now, let's proceed with metadata and basic info.
         
         // Fetch IPFS content
         let metadataJson = {};
-        if (metadataURI.startsWith("ipfs://")) {
+        if (metadataURI && metadataURI.startsWith("ipfs://")) {
             const cid = metadataURI.replace("ipfs://", "");
             try {
                 const response = await fetch(`https://gateway.pinata.cloud/ipfs/${cid}`);
@@ -83,28 +89,27 @@ async function handleDegreeIssued(tokenId, student, issuer, event) {
             }
         }
 
-        // Get on-chain details (simulating call if contract helper exists)
-        // const degreeData = await contract.getDegree(tokenId); 
-        // For this example, we'll placeholders or minimal data from event
-        // In production: You definitely need a contract function 'getDegree(uint256)' returning the struct
-        
         // Create/Update Degree
-        const degree = {
-            tokenId: Number(tokenId),
-            studentAddress: student,
-            issuerAddress: issuer,
-            metadataURI: metadataURI,
-            metadataJson: metadataJson,
-            // These would come from contract call
-            universityName: metadataJson.university || "Unknown", 
-            degreeName: metadataJson.degree || "Unknown",
-            fieldOfStudy: metadataJson.major || "Unknown",
-            issuedAt: new Date(), // Should come from contract block time
-            blockNumber: event.toJSON().blockNumber,
-            transactionHash: event.toJSON().transactionHash
-        };
-
-        await Degree.findOneAndUpdate({ tokenId: Number(tokenId) }, degree, { upsert: true });
+        // We use upsert to handle cases where we might re-index or process out of order
+        await Degree.findOneAndUpdate(
+            { tokenId: Number(tokenId) }, 
+            {
+                tokenId: Number(tokenId),
+                studentAddress: student.toLowerCase(),
+                issuerAddress: issuer.toLowerCase(),
+                metadataURI: metadataURI,
+                metadataJson: metadataJson,
+                // Fallback values if metadata is missing
+                universityName: metadataJson.university || "Unknown", 
+                degreeName: metadataJson.degree || "Unknown",
+                fieldOfStudy: metadataJson.major || "Unknown",
+                issuedAt: new Date(), 
+                blockNumber: event.log.blockNumber,
+                transactionHash: event.log.transactionHash,
+                revoked: false
+            }, 
+            { upsert: true, new: true }
+        );
         console.log(`✅ Indexed Degree #${tokenId}`);
 
     } catch (err) {
@@ -121,7 +126,7 @@ async function handleDegreeRevoked(tokenId, student, revoker, revokedAt, event) 
             { 
                 revoked: true,
                 revokedAt: new Date(Number(revokedAt) * 1000),
-                revokerAddress: revoker
+                revokerAddress: revoker.toLowerCase()
             }
         );
         console.log(`✅ Marked Degree #${tokenId} as revoked`);
@@ -161,7 +166,7 @@ async function handleStateSnapshot(snapshotId, totalDegrees, timestamp, event) {
         // 4. Save Record
         await Snapshot.create({
             snapshotId: Number(snapshotId),
-            totalDegrees: activeDegrees.length,
+            totalDegrees: Number(totalDegrees),
             snapshotTimestamp: new Date(Number(timestamp) * 1000),
             ipfsCid: result.IpfsHash
         });
@@ -171,4 +176,9 @@ async function handleStateSnapshot(snapshotId, totalDegrees, timestamp, event) {
     }
 }
 
-module.exports = { startIndexer };
+module.exports = { 
+    startIndexer,
+    handleDegreeIssued,
+    handleDegreeRevoked,
+    handleStateSnapshot
+};
