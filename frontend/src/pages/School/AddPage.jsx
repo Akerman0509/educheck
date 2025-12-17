@@ -78,18 +78,38 @@ export default function SchoolPage() {
       console.log("Metadata uploaded with CID:", metadataURI);
 
       // Step 4: Mint degree on blockchain
-      console.log("Minting degree on blockchain...");
-      const degreeResult = await blockchainService.mintDegree(
-        formData.studentAddress,
-        "University Name", // Replace with actual university name from form if needed
-        "Bachelor of Science",
-        formData.nganhDT,
-        metadataURI
-      );
+      // console.log("Minting degree on blockchain...");
+      // const degreeResult = await blockchainService.mintDegree(
+      //   formData.studentAddress,
+      //   "University Name", // Replace with actual university name from form if needed
+      //   "Bachelor of Science",
+      //   formData.nganhDT,
+      //   metadataURI
+      // );
 
-      setSuccessMsg(
-        `Degree issued successfully!\nToken ID: ${degreeResult.tokenId}\nTx: ${degreeResult.transactionHash?.slice(0, 20)}...`
-      );
+      const response = await fetch("http://localhost:3000/api/school/mint", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                ...formData,
+                metadataURI,       
+                degreeFileCID,     
+                universityName: "KHTN",
+                degreeName: "Bachelor",
+            }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Server error");
+        }
+
+        const degreeResult = result.data; 
+
+        setSuccessMsg(
+            `Phát hành thành công!\nToken ID: ${degreeResult.tokenId}\nTx Hash: ${degreeResult.transactionHash?.slice(0, 20)}...`
+        );
 
       // Reset form
       setFormData({
@@ -113,7 +133,7 @@ export default function SchoolPage() {
   return (
     <div className="w-full flex flex-col justify-center items-center">
       <div className="absolute top-30 left-4">
-        <Button 
+        <Button
           type="type2"
           onClick={() => navigate("/School")}
           className="flex items-center gap-3 px-4 h-6"

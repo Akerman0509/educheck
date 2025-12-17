@@ -7,6 +7,9 @@ import { useEffect, useState } from "react";
 import PdfRenderer from "@/components/ui/PdfRenderer";
 import { useWallet } from "@/hooks/useWallet";
 import { useBlockchain } from "@/context/BlockchainContext";
+import { pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@5.4.296/build/pdf.worker.min.mjs`;
 
 export default function StudentPage() {
     const [data, setData] = useState([]);
