@@ -5,6 +5,9 @@ import Table from "@/components/ui/table";
 import ImgGrid from "@/components/ui/imgGrid";
 import { useEffect, useState } from "react";
 import { useBlockchain } from "@/context/BlockchainContext";
+import { pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@5.4.296/build/pdf.worker.min.mjs`;
 
 export default function StudentPage() {
     const [data, setData] = useState([]);
