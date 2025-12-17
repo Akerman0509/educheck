@@ -15,107 +15,9 @@ export default function SchoolPage() {
     const [successMsg, setSuccessMsg] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
 
-    const { blockchainService } = useBlockchain();
     const blockchain = useBlockchain();
 
-<<<<<<< HEAD
     const [formData, setFormData] = useState({
-=======
-  const [formData, setFormData] = useState({
-    studentAddress: "",
-    soHieu: "",
-    hoTen: "",
-    ngaySinh: "",
-    namTN: "",
-    nganhDT: "",
-  });
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const issueDegree = async () => {
-    try {
-      setLoading(true);
-      setErrorMsg("");
-      setSuccessMsg("");
-
-      // Validation
-      if (!filePDF) throw new Error("PDF file is required");
-      if (!formData.studentAddress) throw new Error("Student wallet address is required");
-      if (!formData.hoTen) throw new Error("Student name is required");
-      if (!formData.nganhDT) throw new Error("Field of study is required");
-
-      // Validate address format
-      if (!formData.studentAddress.startsWith('0x') || formData.studentAddress.length !== 42) {
-        throw new Error('Invalid Ethereum address format');
-      }
-
-      // Connect wallet if needed
-      if (!wallet.isConnected) {
-        await wallet.connect();
-      }
-
-      // Step 1: Upload PDF to IPFS
-      console.log("Uploading degree PDF to IPFS...");
-      const fileUploadResult = await IpfsService.uploadDegreeFile(filePDF);
-      const degreeFileCID = fileUploadResult.cid;
-      console.log("PDF uploaded with CID:", degreeFileCID);
-
-      // Step 2: Create metadata object
-      const metadata = {
-        studentName: formData.hoTen,
-        certificateNumber: formData.soHieu,
-        dateOfBirth: formData.ngaySinh,
-        graduationYear: formData.namTN,
-        fieldOfStudy: formData.nganhDT,
-        degreeFileCID: degreeFileCID,
-        issuedAt: new Date().toISOString(),
-      };
-
-      // Step 3: Upload metadata to IPFS
-      console.log("Uploading degree metadata to IPFS...");
-      const metadataUploadResult = await IpfsService.uploadDegreeMetadata(metadata);
-      const metadataURI = metadataUploadResult.cid;
-      console.log("Metadata uploaded with CID:", metadataURI);
-
-      // Step 4: Mint degree on blockchain
-      // console.log("Minting degree on blockchain...");
-      // const degreeResult = await blockchainService.mintDegree(
-      //   formData.studentAddress,
-      //   "University Name", // Replace with actual university name from form if needed
-      //   "Bachelor of Science",
-      //   formData.nganhDT,
-      //   metadataURI
-      // );
-
-      const response = await fetch("http://localhost:3000/api/school/mint", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ...formData,
-                metadataURI,       
-                degreeFileCID,     
-                universityName: "KHTN",
-                degreeName: "Bachelor",
-            }),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || "Server error");
-        }
-
-        const degreeResult = result.data; 
-
-        setSuccessMsg(
-            `Phát hành thành công!\nToken ID: ${degreeResult.tokenId}\nTx Hash: ${degreeResult.transactionHash?.slice(0, 20)}...`
-        );
-
-      // Reset form
-      setFormData({
->>>>>>> indexer
         studentAddress: "",
         soHieu: "",
         hoTen: "",
@@ -125,28 +27,14 @@ export default function SchoolPage() {
     });
 
     const handleInputChange = (field, value) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-<<<<<<< HEAD
     const issueDegree = async () => {
         try {
             setLoading(true);
             setErrorMsg("");
             setSuccessMsg("");
-=======
-  return (
-    <div className="w-full flex flex-col justify-center items-center">
-      <div className="absolute top-30 left-4">
-        <Button
-          type="type2"
-          onClick={() => navigate("/School")}
-          className="flex items-center gap-3 px-4 h-6"
-        >
-          <img src="/imgButton/ArrowBack.png" className="w-5 h-4" />
-        </Button>
-      </div>
->>>>>>> indexer
 
             // Validation
             if (!filePDF) throw new Error("PDF file is required");
@@ -197,19 +85,28 @@ export default function SchoolPage() {
             console.log("Metadata uploaded with CID:", metadataURI);
 
             // Step 4: Mint degree on blockchain
-            console.log("Minting degree on blockchain...");
-            const degreeResult = await blockchainService.mintDegree(
-                formData.studentAddress,
-                "University Name", // Replace with actual university name from form if needed
-                "Bachelor of Science",
-                formData.nganhDT,
-                metadataURI
-            );
+            const response = await fetch("http://localhost:3000/api/school/mint", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...formData,
+                    metadataURI,
+                    degreeFileCID,
+                    universityName: "KHTN",
+                    degreeName: "Bachelor",
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Server error");
+            }
+
+            const degreeResult = result.data;
 
             setSuccessMsg(
-                `Degree issued successfully!\nToken ID: ${
-                    degreeResult.tokenId
-                }\nTx: ${degreeResult.transactionHash?.slice(0, 20)}...`
+                `Phát hành thành công!\nToken ID: ${degreeResult.tokenId}\nTx Hash: ${degreeResult.transactionHash?.slice(0, 20)}...`
             );
 
             // Reset form
@@ -244,7 +141,7 @@ export default function SchoolPage() {
 
             <PageTitle>Phát hành văn bằng</PageTitle>
 
-            {!blockchain.isWalletConnected && (
+            {blockchain.isWalletConnected && (
                 <p className="text-sm text-gray-600 mb-4">
                     Connected: {blockchain.userAddress?.slice(0, 6)}...
                     {blockchain.userAddress?.slice(-4)}
