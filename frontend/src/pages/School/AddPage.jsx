@@ -85,6 +85,7 @@ export default function SchoolPage() {
             console.log("Metadata uploaded with CID:", metadataURI);
 
             // Step 4: Mint degree on blockchain
+<<<<<<< HEAD
             const response = await fetch("http://localhost:3000/api/school/mint", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -104,9 +105,39 @@ export default function SchoolPage() {
             }
 
             const degreeResult = result.data;
+=======
+            const response = await fetch(
+                "http://localhost:3000/api/school/mint",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        ...formData,
+                        metadataURI,
+                        degreeFileCID,
+                        universityName: "KHTN",
+                        degreeName: "Bachelor",
+                    }),
+                }
+            );
+>>>>>>> 239bec2b7193141ae95a5a2a710653198aa6568c
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Server error");
+            }
+
+            const degreeResult = result.data;
 
             setSuccessMsg(
+<<<<<<< HEAD
                 `Phát hành thành công!\nToken ID: ${degreeResult.tokenId}\nTx Hash: ${degreeResult.transactionHash?.slice(0, 20)}...`
+=======
+                `Phát hành thành công!\nToken ID: ${
+                    degreeResult.tokenId
+                }\nTx Hash: ${degreeResult.transactionHash?.slice(0, 20)}...`
+>>>>>>> 239bec2b7193141ae95a5a2a710653198aa6568c
             );
 
             // Reset form
