@@ -33,21 +33,57 @@ export default function Home() {
     const [showTable, setShowTable] = useState(false);
     const [data, setData] = useState([]);
     const [dataFilter, setDataFilter] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    const handleSearch = (dataFilter) => {
-        // const result = fetchWithUrl(
-        //     `https://api.example.com/search?query=${dataFilter}`
-        // );
-        setData(tempData);
-        setShowTable(true);
-    };
+    // const handleSearch = (dataFilter) => {
+    //     // const result = fetchWithUrl(
+    //     //     `https://api.example.com/search?query=${dataFilter}`
+    //     // );
+    //     setData(tempData);
+    //     setShowTable(true);
+    // };
     const handleFilterChange = (value) => {
         setDataFilter(value);
     };
+        const handleSearch = async (query) => {
+        setError("");
+        setShowTable(false);
+        const q = (query && query.trim()) || (blockchain.isWalletConnected ? blockchain.userAddress : "");
+    if (!q) {
+      setError("Please enter an ID or wallet address (or connect your wallet).");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      
+        const url = `/api/${encodeURIComponent(q)}`;
+        const res = await fetch(url);
+        const body = await res.json();
+        if (!res.ok || !body.success) throw new Error(body.message || "Server error");
+        // Map backend degrees -> table rows expected by your Table component:
+        const rows = (body.data || []).map(d => ({
+            "Số hiệu văn bằng": d.tokenId ?? "",
+            "Họ và tên": d.universityName ?? "",
+            "Ngày sinh": d.issuedAt ? new Date(d.issuedAt).toLocaleDateString() : "",
+            "Năm TN": d.issuedAt ? new Date(d.issuedAt).getFullYear() : "",
+            "Ngành ĐT": d.fieldOfStudy ?? "",
+            "Hiệu lực": d.revoked ? "Đã thu hồi" : "Còn hiệu lực",
+            
+      }));
+      setData(rows);
+      setShowTable(true);
+    } catch (err) {
+      setError(err.message || "Failed to fetch degrees");
+    } finally {
+      setLoading(false);
+    }
+  };
 
     const blockchain = useBlockchain();
 
-    const a = "blockchain connected status: " + blockchain.isWalletConnected;
+    // const a = "blockchain connected status: " + blockchain.isWalletConnected;
     return (
         <div className="flex flex-col justify-center items-center">
             <PageTitle>Tra cứu văn bằng</PageTitle>
