@@ -7,5 +7,5 @@ const schoolController = require("../controllers/school.controller");
 // GET /school/list/trending/stamps
 schoolRouter.get("/", schoolController.getCollectionById);
 // POST /school/mint
-schoolRouter.post("/mint", schoolController.mintDegree);
+schoolRouter.post("/degree", schoolController.mintDegree);
 module.exports = schoolRouter;

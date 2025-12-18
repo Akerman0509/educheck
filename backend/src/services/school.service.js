@@ -60,31 +60,12 @@ class SchoolService {
             );
 
             const receipt = await tx.wait();
-            const event = receipt.logs.find(log => log.fragment && log.fragment.name === 'DegreeIssued');
-            const tokenId = event ? Number(event.args[0]) : null;
-
-            const degreeDoc = new Degree({
-                tokenId: tokenId,
-                studentAddress: studentAddress,
-                universityName: universityName,
-                degreeName: degreeName,
-                fieldOfStudy: fieldOfStudy,
-                metadataURI: metadataURI,
-                metadataJson: rawData,
-
-                issuerAddress: this.wallet.address,
-                issuedAt: new Date(),
-                blockNumber: receipt.blockNumber,
+            return {
+                success: true,
                 transactionHash: receipt.hash
-            });
-
-            console.log("Save DB:", degreeDoc.universityName);
-
-            const savedDoc = await degreeDoc.save();
-            return savedDoc;
-
+            };
         } catch (error) {
-            console.error("❌ Backend error:", error);
+            console.error("Backend error:", error);
             throw error;
         }
     }
