@@ -17,9 +17,9 @@ jest.mock("../../src/models/SyncStatus.schema");
 global.fetch = jest.fn(() =>
     Promise.resolve({
         json: () => Promise.resolve({ 
-            university: "Test University", 
-            degree: "B.Sc.", 
-            major: "Computer Science" 
+            universityName: "Test University", 
+            degreeName: "B.Sc.", 
+            fieldOfStudy: "Computer Science" 
         }),
     })
 );

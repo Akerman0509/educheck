@@ -100,9 +100,9 @@ async function handleDegreeIssued(tokenId, student, issuer, event) {
                 metadataURI: metadataURI,
                 metadataJson: metadataJson,
                 // Fallback values if metadata is missing
-                universityName: metadataJson.university || "Unknown", 
-                degreeName: metadataJson.degree || "Unknown",
-                fieldOfStudy: metadataJson.major || "Unknown",
+                universityName: metadataJson.universityName || "Unknown", 
+                degreeName: metadataJson.degreeName || "Unknown",
+                fieldOfStudy: metadataJson.fieldOfStudy || "Unknown",
                 issuedAt: new Date(), 
                 blockNumber: event.log.blockNumber,
                 transactionHash: event.log.transactionHash,
