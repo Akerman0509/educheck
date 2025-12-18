@@ -10,6 +10,7 @@ export function BlockchainProvider({ children }) {
     const [userAddress, setUserAddress] = useState(null);
     const [error, setError] = useState(null);
     const [isInitializing, setIsInitializing] = useState(true);
+    const [universities, setUniversities] = useState([]);
 
     // Initialize blockchain service on mount
     useEffect(() => {
@@ -72,6 +73,8 @@ export function BlockchainProvider({ children }) {
                 connectWallet,
                 disconnectWallet,
                 blockchainService: BlockchainService,
+                universities,    
+                setUniversities,
             }}
         >
             {children}

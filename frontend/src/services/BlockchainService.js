@@ -108,21 +108,34 @@ class BlockchainService {
     }
 
     // Assign university (ministry only)
-    async assignUniversity(universityAddress) {
+    async assignUniversity(universityAddress, nameUniversity) {
         await this._ensureSigner();
         try {
-            const tx = await this.contract.assignUniversity(universityAddress);
+            const tx = await this.contract.assignUniversity(universityAddress, nameUniversity);
             return await tx.wait();
         } catch (err) {
             console.error("assignUniversity failed:", err.message || err);
             try {
                 await this.contract.estimateGas.assignUniversity(
-                    universityAddress
+                    universityAddress,
+                    nameUniversity
                 );
             } catch (estimateErr) {
                 console.error("estimateGas also failed:", estimateErr.message);
             }
             throw err;
+        }
+    }
+
+    async getUniversityName(universityAddress) {
+        if (!this.contract) return "";
+        try {
+            // Biến public universityNames trong solidity tự tạo ra getter này
+            const name = await this.contract.universityNames(universityAddress);
+            return name;
+        } catch (error) {
+            console.error("Error fetching university name:", error);
+            return "";
         }
     }
 

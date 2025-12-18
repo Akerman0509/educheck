@@ -1,6 +1,6 @@
 import PageTitle from "@/components/ui/PageTitle";
 import TableAdmin from "@/components/ui/TableAdmin";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Button from "@/components/ui/button";
 import InputField from "@/components/ui/inputField";
 import { useBlockchain } from "@/context/BlockchainContext";
@@ -8,13 +8,21 @@ import { useBlockchain } from "@/context/BlockchainContext";
 export default function AdminPage() {
     const [data, setData] = useState([]);
     const [formData, setFormData] = useState({
+        universityName: "",
         studentWalletUrl: "",
     });
     const [loading, setLoading] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
 
-    const { blockchainService } = useBlockchain();
+    const { 
+        blockchainService, 
+        isWalletConnected, 
+        userAddress,
+        universities,     
+        setUniversities  
+    } = useBlockchain();
+
     const blockchain = useBlockchain();
     const handleInputChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -26,44 +34,42 @@ export default function AdminPage() {
             setErrorMsg("");
             setSuccessMsg("");
 
-            // check if wallet is connected
             if (!blockchain.isWalletConnected) {
                 window.alert("Please connect your wallet first.");
                 return;
             }
 
-            const universityAddress = formData.studentWalletUrl.trim();
+            const nameToSave = formData.universityName;
+            const addressToSave = formData.studentWalletUrl.trim();
 
-            // Validate address format
-            if (
-                !universityAddress.startsWith("0x") ||
-                universityAddress.length !== 42
-            ) {
-                throw new Error(
-                    "Invalid Ethereum address format. Must start with 0x and be 42 characters long"
-                );
+            // Validate
+            if (!addressToSave.startsWith("0x") || addressToSave.length !== 42) {
+                throw new Error("Invalid Ethereum address format.");
+            }
+            if (!nameToSave) {
+                throw new Error("Tên trường không được để trống.");
             }
 
-            // Call assignUniversity on blockchain
-            const tx = await blockchainService.assignUniversity(
-                universityAddress
-            );
+            // Call blockchain service to assign university
+            await blockchainService.assignUniversity(addressToSave, nameToSave);
 
-            setData((prev) => [
+            setUniversities((prev) => [
                 ...prev,
                 {
-                    "Địa chỉ": universityAddress,
-                    "Trạng thái": "Được cấp quyền",
-                    "Thời gian": new Date().toLocaleString(),
+                    id: prev.length + 1,
+                    "Trường": nameToSave, 
+                    universityName: nameToSave,
+                    address: addressToSave,
+                    status: "Được cấp quyền",
+                    timestamp: new Date().toLocaleString(),
                 },
             ]);
 
-            setSuccessMsg(
-                `Successfully assigned university: ${universityAddress}`
-            );
-            setFormData({ studentWalletUrl: "" });
+            setSuccessMsg(`Đã cấp quyền thành công cho: ${nameToSave}`);
+            setFormData({ universityName: "", studentWalletUrl: "" });
+
         } catch (error) {
-            setErrorMsg(`Error: ${error.message}`);
+            setErrorMsg(`Lỗi: ${error.message}`);
             console.error("Assignment failed:", error);
         } finally {
             setLoading(false);
@@ -92,12 +98,17 @@ export default function AdminPage() {
                 )}
 
                 <InputField
+                    placeholder="Tên trường"
+                    type="text"
+                    value={formData.universityName || ""}
+                    onChange={(val) => handleInputChange("universityName", val)}
+                />
+
+                <InputField
                     placeholder="Địa chỉ ví của trường (0x...)"
                     type="text"
-                    value={formData.studentWalletUrl}
-                    onChange={(value) =>
-                        handleInputChange("studentWalletUrl", value)
-                    }
+                    value={formData.studentWalletUrl || ""}
+                    onChange={(val) => handleInputChange("studentWalletUrl", val)}
                 />
                 <Button
                     className="font-semibold mt-4"
@@ -108,7 +119,7 @@ export default function AdminPage() {
                     {loading ? "Processing..." : "Cấp quyền"}
                 </Button>
                 <div className="p-4"></div>
-                <TableAdmin data={data} />
+                <TableAdmin data={universities} />
             </div>
             <div className="p-8"></div>
         </>

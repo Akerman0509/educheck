@@ -5,7 +5,7 @@ export default function InputField({ placeholder, type, onChange, value, ...prop
                 className="h-full w-full p-6 focus:border-none focus:ring-0 outline-none"
                 type={type}
                 placeholder={placeholder}
-                value={value}
+                value={value || ""}
                 onChange={(e) => onChange && onChange(e.target.value)}
                 {...props}
             />

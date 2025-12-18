@@ -58,12 +58,16 @@ contract UniversityDegreesSBT is ERC721, AccessControl {
     // Administration (Ministry)
     // ==========================
     /// @notice Ministry assigns the UNIVERSITY_ROLE to an address
+    mapping(address => string) public universityNames;
+
     function assignUniversity(
-        address university
-    ) external onlyRole(MINISTRY_ROLE) {
+        address university, 
+        string memory name 
+    ) external onlyRole(MINISTRY_ROLE) {      
         require(university != address(0), "invalid address");
         grantRole(UNIVERSITY_ROLE, university);
         emit UniversityAssigned(msg.sender, university);
+        universityNames[university] = name;
     }
 
     /// @notice Ministry revokes the UNIVERSITY_ROLE from an address

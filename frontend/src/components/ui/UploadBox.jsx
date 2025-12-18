@@ -56,7 +56,7 @@ export default function UploadBox({ onChange }) {
   };
 
   return (
-    <label className="bg-white w-[350px] h-[350px] rounded-xl shadow-[0px_5px_20px_rgba(0,0,0,0.4)] m-2 flex items-center justify-center cursor-pointer overflow-hidden">
+    <label className="bg-white w-[500px] h-[500px] rounded-xl shadow-[0px_5px_20px_rgba(0,0,0,0.4)] m-2 flex items-center justify-center cursor-pointer overflow-hidden">
       {preview ? (
         <img src={preview} className="w-full h-full object-cover" />
       ) : (

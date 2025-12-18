@@ -44,18 +44,18 @@ class SchoolService {
     async mintDegree(rawData) {
         try {
             console.log("Raw data received:", rawData);
-
+            
             const studentAddress = rawData.studentAddress;
-            const universityName = rawData.universityName || "KHTN";
-            const degreeName = rawData.degreeName || "Bachelor";
-            const fieldOfStudy = rawData.nganhDT || rawData.fieldOfStudy;
-            const metadataURI = rawData.metadataURI;
-
+            const studentName = rawData.studentName;
+            const degreeType = rawData.degreeName;
+            const graduationDate = rawData.graduationYear;
+            const metadataURI = rawData.ipfsHash;
+            //console.log("University Name:", rawData.universityName);
             const tx = await this.contract.mintDegree(
                 studentAddress,
-                universityName,
-                degreeName,
-                fieldOfStudy,
+                studentName,     
+                degreeType,      
+                graduationDate,  
                 metadataURI
             );
 

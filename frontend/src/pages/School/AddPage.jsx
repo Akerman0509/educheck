@@ -14,16 +14,18 @@ export default function SchoolPage() {
     const [loading, setLoading] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
-
+    const { blockchainService } = useBlockchain();
+    const [uniName, setUniName] = useState("Đang tải...");
     const blockchain = useBlockchain();
 
     const [formData, setFormData] = useState({
         studentAddress: "",
-        soHieu: "",
-        hoTen: "",
-        ngaySinh: "",
-        namTN: "",
-        nganhDT: "",
+        certificateNumber: "",
+        studentName: "",
+        dateOfBirth: "",
+        graduationYear: "",
+        fieldOfStudy: "",
+        degreeName: "",
     });
 
     const handleInputChange = (field, value) => {
@@ -38,11 +40,13 @@ export default function SchoolPage() {
 
             // Validation
             if (!filePDF) throw new Error("PDF file is required");
-            if (!formData.studentAddress)
-                throw new Error("Student wallet address is required");
-            if (!formData.hoTen) throw new Error("Student name is required");
-            if (!formData.nganhDT)
-                throw new Error("Field of study is required");
+            if (!formData.studentAddress) throw new Error("Student wallet address is required");
+            if (!formData.certificateNumber) throw new Error("Certificate number is required");
+            if (!formData.studentName) throw new Error("Student name is required");
+            if (!formData.dateOfBirth) throw new Error("Date of birth is required");
+            if (!formData.graduationYear) throw new Error("Graduation year is required");
+            if (!formData.fieldOfStudy) throw new Error("Field of study is required");
+            if (!formData.degreeName) throw new Error("Degree name is required");
 
             // Validate address format
             if (
@@ -64,16 +68,19 @@ export default function SchoolPage() {
             );
             const degreeFileCID = fileUploadResult.cid;
             console.log("PDF uploaded with CID:", degreeFileCID);
-
+            const uniName = await blockchainService.getUniversityName(blockchain.userAddress);
+            setUniName(uniName);
             // Step 2: Create metadata object
             const metadata = {
-                studentName: formData.hoTen,
-                certificateNumber: formData.soHieu,
-                dateOfBirth: formData.ngaySinh,
-                graduationYear: formData.namTN,
-                fieldOfStudy: formData.nganhDT,
+                studentName: formData.studentName,
+                certificateNumber: formData.certificateNumber,
+                dateOfBirth: formData.dateOfBirth,
+                graduationYear: formData.graduationYear,
+                fieldOfStudy: formData.fieldOfStudy,
                 degreeFileCID: degreeFileCID,
                 issuedAt: new Date().toISOString(),
+                universityName: uniName,
+                degreeName: formData.degreeName,
             };
 
             // Step 3: Upload metadata to IPFS
@@ -85,19 +92,20 @@ export default function SchoolPage() {
             console.log("Metadata uploaded with CID:", metadataURI);
 
             // Step 4: Mint degree on blockchain
+            //console.log("uniName:", uniName);
             const response = await fetch(
                 "http://localhost:3000/api/school/degree",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        ...formData,
-                        metadataURI,
-                        degreeFileCID,
+                    body: JSON.stringify({                        
+                        ...formData,          
+                        ipfsHash: metadataURI, 
+                        degreeFileCID: degreeFileCID,
                     }),
                 }
             );
-
+            
             const result = await response.json();
 
             if (!response.ok || !result.success) {
@@ -114,11 +122,11 @@ export default function SchoolPage() {
             // Reset form
             setFormData({
                 studentAddress: "",
-                soHieu: "",
-                hoTen: "",
-                ngaySinh: "",
-                namTN: "",
-                nganhDT: "",
+                certificateNumber: "",
+                studentName: "",
+                dateOfBirth: "",
+                graduationYear: "",
+                degreeName: "",
             });
             setFilePDF(null);
         } catch (error) {
@@ -173,36 +181,44 @@ export default function SchoolPage() {
                     <InputField
                         placeholder="Số hiệu văn bằng"
                         type="text"
-                        value={formData.soHieu}
-                        onChange={(value) => handleInputChange("soHieu", value)}
+                        value={formData.certificateNumber}
+                        onChange={(value) => handleInputChange("certificateNumber", value)}
                     />
                     <InputField
                         placeholder="Họ và tên"
                         type="text"
-                        value={formData.hoTen}
-                        onChange={(value) => handleInputChange("hoTen", value)}
+                        value={formData.studentName}
+                        onChange={(value) => handleInputChange("studentName", value)}
                     />
                     <InputField
                         placeholder="Ngày sinh (dd/mm/yyyy)"
                         type="text"
-                        value={formData.ngaySinh}
+                        value={formData.dateOfBirth}
                         onChange={(value) => {
                             const newValue = formatAndValidateDate(value);
-                            handleInputChange("ngaySinh", newValue);
+                            handleInputChange("dateOfBirth", newValue);
                         }}
                     />
                     <InputField
                         placeholder="Năm TN"
                         type="number"
-                        value={formData.namTN}
-                        onChange={(value) => handleInputChange("namTN", value)}
+                        value={formData.graduationYear}
+                        onChange={(value) => handleInputChange("graduationYear", value)}
                     />
                     <InputField
                         placeholder="Ngành ĐT"
                         type="text"
-                        value={formData.nganhDT}
+                        value={formData.fieldOfStudy}
                         onChange={(value) =>
-                            handleInputChange("nganhDT", value)
+                            handleInputChange("fieldOfStudy", value)
+                        }
+                    />
+                    <InputField
+                        placeholder="Loại bằng"
+                        type="text"
+                        value={formData.degreeName}
+                        onChange={(value) =>
+                            handleInputChange("degreeName", value)
                         }
                     />
                 </div>
