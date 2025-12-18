@@ -60,8 +60,11 @@ class SchoolService {
             );
 
             const receipt = await tx.wait();
+            const event = receipt.logs.find(log => log.fragment && log.fragment.name === 'DegreeIssued');
+            const tokenId = event ? Number(event.args[0]) : null;
             return {
                 success: true,
+                tokenId: tokenId,
                 transactionHash: receipt.hash
             };
         } catch (error) {

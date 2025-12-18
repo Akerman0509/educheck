@@ -79,11 +79,14 @@ async function handleDegreeIssued(tokenId, student, issuer, event) {
         
         // Fetch IPFS content
         let metadataJson = {};
-        if (metadataURI && metadataURI.startsWith("ipfs://")) {
+        console.log(` URI: ${metadataURI}`);
+        if (metadataURI) {
             const cid = metadataURI.replace("ipfs://", "");
             try {
-                const response = await fetch(`https://gateway.pinata.cloud/ipfs/${cid}`);
+                const response = await fetch(`https://${process.env.PINATA_GATEWAY_URL}/ipfs/${cid}`);
                 metadataJson = await response.json();
+                console.log(`☁️  Fetched IPFS metadata for CID: ${cid}`);
+                console.log("Metadata JSON:", metadataJson);
             } catch (err) {
                 console.warn(`⚠️ Failed to fetch IPFS metadata for ${cid}`);
             }

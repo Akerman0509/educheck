@@ -94,8 +94,6 @@ export default function SchoolPage() {
                         ...formData,
                         metadataURI,
                         degreeFileCID,
-                        universityName: "KHTN",
-                        degreeName: "Bachelor",
                     }),
                 }
             );
