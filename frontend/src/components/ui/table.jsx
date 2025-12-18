@@ -1,28 +1,36 @@
+
 function Table({ type, data, ...props }) {
-    const borderClass1 = "p-2";
-    const borderClass2 = "p-2 w-52 ";
+    const borderClass = "p-2";
     const titleClass = "py-2 px-4 bg-blue-100 sticky top-0 z-20";
+
+    // Collect all unique keys from all rows
+    const columns = data && data.length > 0
+        ? Array.from(
+            data.reduce((set, row) => {
+                Object.keys(row).forEach(key => set.add(key));
+                return set;
+            }, new Set())
+        )
+        : [];
+
     let tableBody;
     if (!data || data.length === 0) {
         tableBody = (
             <tr>
-                <td colSpan="6" className="p-4 bg-blue-50">
+                <td colSpan={columns.length || 1} className="p-4 bg-blue-50">
                     Không có dữ liệu để hiển thị
                 </td>
             </tr>
         );
     } else {
-        tableBody = data.map((k, idx) => (
+        tableBody = data.map((row, idx) => (
             <tr
                 key={idx}
-                className="odd:bg-white even:bg-gray-200  hover:bg-blue-50"
+                className="odd:bg-white even:bg-gray-200 hover:bg-blue-50"
             >
-                <td className={borderClass1}>{k["Số hiệu văn bằng"]}</td>
-                <td className={borderClass2}>{k["Họ và tên"]}</td>
-                <td className={borderClass1}>{k["Ngày sinh"]}</td>
-                <td className={borderClass1}>{k["Năm TN"]}</td>
-                <td className={borderClass2}>{k["Ngành ĐT"]}</td>
-                <td className={borderClass1}>{k["Hiệu lực"]}</td>
+                {columns.map(col => (
+                    <td key={col} className={borderClass}>{row[col]}</td>
+                ))}
             </tr>
         ));
     }
@@ -32,15 +40,11 @@ function Table({ type, data, ...props }) {
             <table className="table-fixed border-transparent text-center">
                 <thead>
                     <tr>
-                        <th className={titleClass}>Số hiệu văn bằng</th>
-                        <th className={titleClass}>Họ và tên</th>
-                        <th className={titleClass}>Ngày sinh</th>
-                        <th className={titleClass}>Năm TN</th>
-                        <th className={titleClass}>Ngành ĐT</th>
-                        <th className={titleClass}>Hiệu lực</th>
+                        {columns.map(col => (
+                            <th key={col} className={titleClass}>{col}</th>
+                        ))}
                     </tr>
                 </thead>
-
                 <tbody>{tableBody}</tbody>
             </table>
         </div>

@@ -63,15 +63,16 @@ export default function Home() {
         const body = await res.json();
         if (!res.ok || !body.success) throw new Error(body.message || "Server error");
         // Map backend degrees -> table rows expected by your Table component:
-        const rows = (body.data || []).map(d => ({
-            "Số hiệu văn bằng": d.tokenId ?? "",
-            "Họ và tên": d.universityName ?? "",
-            "Ngày sinh": d.issuedAt ? new Date(d.issuedAt).toLocaleDateString() : "",
-            "Năm TN": d.issuedAt ? new Date(d.issuedAt).getFullYear() : "",
-            "Ngành ĐT": d.fieldOfStudy ?? "",
+        const rows = (Array.isArray(body.data) ? body.data : [body.data]).map(d => ({
+            "Số hiệu văn bằng": d.metadataJson?.certificateNumber ?? "",
+            "Họ và tên": d.metadataJson?.studentName ?? "",
+            "Ngày sinh": d.metadataJson?.dateOfBirth ?? "",
+            "Năm TN": d.metadataJson?.graduationYear ?? "",
+            "Trường ĐH": d.metadataJson?.universityName ?? d.universityName ?? "",
+            "Ngành ĐT": d.metadataJson?.fieldOfStudy ?? d.fieldOfStudy ?? "",
+            "Cấp bằng ngày": d.metadataJson ? new Date(d.metadataJson.issuedAt).toLocaleDateString() : "",
             "Hiệu lực": d.revoked ? "Đã thu hồi" : "Còn hiệu lực",
-            
-      }));
+}));
       setData(rows);
       setShowTable(true);
     } catch (err) {
