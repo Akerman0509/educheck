@@ -91,17 +91,41 @@ export default function SchoolPage() {
             const metadataURI = metadataUploadResult.cid;
             console.log("Metadata uploaded with CID:", metadataURI);
 
-            // Step 4: Mint degree on blockchain
-            //console.log("uniName:", uniName);
+            // Step 4: Mint degree on blockchain with MetaMask
+            console.log("Minting degree on blockchain...");
+            const blockchainResult = await blockchainService.mintDegree(
+                formData.studentAddress,
+                uniName,
+                formData.degreeName,
+                formData.fieldOfStudy,
+                metadataURI
+            );
+
+            console.log("Blockchain minting successful:", blockchainResult);
+
+            // Step 5: Save degree to backend database
+            console.log("Saving degree to database...");
             const response = await fetch(
                 "http://localhost:3000/api/school/degree",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({                        
-                        ...formData,          
-                        ipfsHash: metadataURI, 
+                    body: JSON.stringify({
+                        tokenId: blockchainResult.tokenId,
+                        studentAddress: formData.studentAddress,
+                        universityName: uniName,
+                        studentName: formData.studentName,
+                        certificateNumber: formData.certificateNumber,
+                        dateOfBirth: formData.dateOfBirth,
+                        graduationYear: formData.graduationYear,
+                        fieldOfStudy: formData.fieldOfStudy,
+                        degreeName: formData.degreeName,
+                        ipfsHash: metadataURI,
                         degreeFileCID: degreeFileCID,
+                        transactionHash: blockchainResult.transactionHash,
+                        issuer: blockchainResult.issuer,
+                        blockNumber: blockchainResult.blockNumber,
+                        issuedAt: new Date().toISOString(),
                     }),
                 }
             );
@@ -109,14 +133,13 @@ export default function SchoolPage() {
             const result = await response.json();
 
             if (!response.ok || !result.success) {
-                throw new Error(result.message || "Server error");
+                throw new Error(result.message || "Failed to save to database");
             }
 
-            const degreeResult = result.data;
-
             setSuccessMsg(
-                `Phát hành thành công!\nToken ID: ${degreeResult.tokenId
-                }\nTx Hash: ${degreeResult.transactionHash?.slice(0, 20)}...`
+                `Phát hành thành công!\nToken ID: ${
+                    blockchainResult.tokenId
+                }\nTx Hash: ${blockchainResult.transactionHash?.slice(0, 20)}...`
             );
 
             // Reset form

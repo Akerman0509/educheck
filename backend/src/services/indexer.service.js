@@ -43,10 +43,23 @@ async function startIndexer() {
         }
 
         provider = new ethers.JsonRpcProvider(RPC_URL);
+        
+        // Set polling interval for local Hardhat node (reduces errors)
+        provider.pollingInterval = 5000; // 5 seconds
+        
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
 
         console.log(`📡 Connected to blockchain: ${RPC_URL}`);
         console.log(`📄 Contract: ${CONTRACT_ADDRESS}`);
+
+        // Suppress ethers.js polling warnings for local development
+        const originalConsoleError = console.error;
+        console.error = (...args) => {
+            if (args[0]?.includes?.('@TODO') || args[0]?.includes?.('results is not iterable')) {
+                return; // Suppress known ethers.js local node warning
+            }
+            originalConsoleError(...args);
+        };
 
         // Sync missing blocks logic would go here
         
@@ -93,16 +106,32 @@ async function handleDegreeIssued(tokenId, student, issuer, event) {
         }
 
         // Create/Update Degree
-        // We use upsert to handle cases where we might re-index or process out of order
-        await Degree.findOneAndUpdate(
-            { tokenId: Number(tokenId) }, 
-            {
+        // Check if degree already exists (saved by frontend)
+        const existingDegree = await Degree.findOne({ tokenId: Number(tokenId) });
+        
+        if (existingDegree) {
+            // Degree already exists, just update blockchain-specific fields
+            console.log(`📝 Degree #${tokenId} already exists, updating blockchain fields only`);
+            await Degree.findOneAndUpdate(
+                { tokenId: Number(tokenId) },
+                {
+                    metadataURI: metadataURI,
+                    blockNumber: event.log.blockNumber,
+                    transactionHash: event.log.transactionHash,
+                    // Update metadataJson if it's empty
+                    ...(Object.keys(existingDegree.metadataJson || {}).length === 0 && { metadataJson: metadataJson })
+                }
+            );
+        } else {
+            // New degree from blockchain event, create full record
+            console.log(`🆕 New degree #${tokenId} from blockchain event`);
+            await Degree.create({
                 tokenId: Number(tokenId),
                 studentAddress: student.toLowerCase(),
                 issuerAddress: issuer.toLowerCase(),
                 metadataURI: metadataURI,
                 metadataJson: metadataJson,
-                // Fallback values if metadata is missing
+                // Try to get from metadata, fallback to "Unknown"
                 universityName: metadataJson.universityName || "Unknown", 
                 degreeName: metadataJson.degreeName || "Unknown",
                 fieldOfStudy: metadataJson.fieldOfStudy || "Unknown",
@@ -110,9 +139,8 @@ async function handleDegreeIssued(tokenId, student, issuer, event) {
                 blockNumber: event.log.blockNumber,
                 transactionHash: event.log.transactionHash,
                 revoked: false
-            }, 
-            { upsert: true, new: true }
-        );
+            });
+        }
         console.log(`✅ Indexed Degree #${tokenId}`);
 
     } catch (err) {

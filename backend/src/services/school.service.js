@@ -22,56 +22,93 @@ try {
 
 class SchoolService {
     constructor() {
+        // Read-only provider (no wallet needed - transactions done in frontend)
         this.provider = new ethers.JsonRpcProvider(process.env.RPC_URL || "http://localhost:8545");
-
-        const privateKey = process.env.PRIVATE_KEY;
         const contractAddress = process.env.CONTRACT_ADDRESS;
 
-        if (privateKey && privateKey.startsWith('0x') && contractAddress) {
-            this.wallet = new ethers.Wallet(privateKey, this.provider);
+        if (contractAddress) {
+            // Read-only contract instance for querying
             this.contract = new ethers.Contract(
                 contractAddress,
                 UniversityDegreesSBT.abi,
-                this.wallet
+                this.provider
             );
         } else {
-            console.warn("Missing Private Key or Contract Address configuration.");
+            console.warn("Missing Contract Address configuration.");
         }
     }
 
-    async getSchoolDegrees(_schoolId) { }
-
-    async mintDegree(rawData) {
+    async getSchoolDegrees(issuerAddress) {
         try {
-            console.log("Raw data received:", rawData);
+            const degrees = await Degree.find({ 
+                issuerAddress: issuerAddress.toLowerCase(),
+                revoked: false 
+            }).sort({ issuedAt: -1 });
             
-            const studentAddress = rawData.studentAddress;
-            const studentName = rawData.studentName;
-            const degreeType = rawData.degreeName;
-            const graduationDate = rawData.graduationYear;
-            const metadataURI = rawData.ipfsHash;
-            //console.log("University Name:", rawData.universityName);
-            const tx = await this.contract.mintDegree(
-                studentAddress,
-                studentName,     
-                degreeType,      
-                graduationDate,  
-                metadataURI
-            );
-
-            const receipt = await tx.wait();
-            const event = receipt.logs.find(log => log.fragment && log.fragment.name === 'DegreeIssued');
-            const tokenId = event ? Number(event.args[0]) : null;
-            return {
-                success: true,
-                tokenId: tokenId,
-                transactionHash: receipt.hash
-            };
+            return degrees;
         } catch (error) {
-            console.error("Backend error:", error);
+            console.error("Error fetching school degrees:", error);
             throw error;
         }
     }
+
+    async saveDegree(degreeData) {
+        try {
+            console.log("Saving degree to database:", degreeData);
+            
+            // Save degree to database after frontend completes blockchain transaction
+            const degree = new Degree({
+                tokenId: degreeData.tokenId,
+                studentAddress: degreeData.studentAddress.toLowerCase(),
+                universityName: degreeData.universityName || '',
+                degreeName: degreeData.degreeName,
+                fieldOfStudy: degreeData.fieldOfStudy || degreeData.graduationYear || '',
+                metadataURI: degreeData.ipfsHash,
+                metadataJson: {
+                    studentName: degreeData.studentName,
+                    certificateNumber: degreeData.certificateNumber,
+                    dateOfBirth: degreeData.dateOfBirth,
+                    graduationYear: degreeData.graduationYear,
+                    degreeFileCID: degreeData.degreeFileCID
+                },
+                issuerAddress: degreeData.issuer?.toLowerCase() || degreeData.issuerAddress?.toLowerCase(),
+                issuedAt: degreeData.issuedAt || new Date(),
+                blockNumber: degreeData.blockNumber || 0,
+                transactionHash: degreeData.transactionHash
+            });
+
+            await degree.save();
+            
+            return {
+                success: true,
+                message: "Degree saved to database"
+            };
+        } catch (error) {
+            console.error("Backend error saving degree:", error);
+            throw error;
+        }
+    }
+    async deleteDegree(tokenId) {
+        try {
+            // Delete degree from database after frontend completes blockchain transaction
+            const result = await Degree.deleteOne({ tokenId: tokenId });
+
+            if (result.deletedCount === 0) {
+                return {
+                    success: false,
+                    message: "Degree not found in database"
+                };
+            }
+
+            return {
+                success: true,
+                message: "Degree deleted from database"
+            };
+        } catch (error) {
+            console.error("Backend error deleting degree:", error);
+            throw error;
+        }
+    } 
 }
 
 module.exports = new SchoolService();

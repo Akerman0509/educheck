@@ -151,7 +151,6 @@ class BlockchainService {
     }
 
     // Mint degree SBT with IPFS metadata
-
     async mintDegree(
         studentAddress,
         universityName,
@@ -177,6 +176,7 @@ class BlockchainService {
             );
         }
 
+        // User signs transaction with MetaMask
         const tx = await this.contract.mintDegree(
             studentAddress,
             universityName,
@@ -205,11 +205,14 @@ class BlockchainService {
             );
         }
 
+        const issuerAddress = await this.signer.getAddress();
+
         return {
             success: true,
             transactionHash: receipt.hash,
             blockNumber: receipt.blockNumber,
             tokenId: finalTokenId,
+            issuer: issuerAddress,
             event,
         };
     }
@@ -254,7 +257,13 @@ class BlockchainService {
     async revokeDegree(tokenId) {
         await this._ensureSigner();
         const tx = await this.contract.revokeDegree(tokenId);
-        return await tx.wait();
+        const receipt = await tx.wait();
+        
+        return {
+            success: true,
+            transactionHash: receipt.hash,
+            blockNumber: receipt.blockNumber
+        };
     }
 
     async getContractInfo() {

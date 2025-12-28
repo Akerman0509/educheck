@@ -11,9 +11,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@5.4.296/build/pdf.
 
 export default function StudentPage() {
     const [data, setData] = useState([]);
+    const [allData, setAllData] = useState([]);
     const [files, setImgFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const [filterText, setFilterText] = useState("");
 
     const { blockchainService } = useBlockchain();
     const blockchain = useBlockchain();
@@ -23,8 +25,20 @@ export default function StudentPage() {
             setLoading(true);
             setErrorMsg("");
 
-            // Fetch degrees from blockchain
-            const degrees = await blockchainService.getMyDegrees();
+            // Fetch degrees from backend API using connected wallet address
+            const response = await fetch(`http://localhost:3000/api/student/${blockchain.userAddress}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.message || "Failed to fetch degrees");
+            }
+
+            const degrees = result.data;
 
             if (!degrees || degrees.length === 0) {
                 setData([]);
@@ -32,57 +46,39 @@ export default function StudentPage() {
                 return;
             }
 
-            // Fetch metadata for each degree and merge fields
-            const tableData = await Promise.all(
-                degrees.map(async (degree, index) => {
-                    let metadata = {};
-                    try {
-                        metadata = await blockchainService.fetchMetadataFromURI(
-                            degree.metadataURI
-                        );
-                    } catch (err) {
-                        console.error("Failed to fetch metadata:", err);
-                    }
-                    return {
-                        STT: index + 1,
-                        "Số hiệu văn bằng": metadata.certificateNumber || "",
-                        "Họ và tên": metadata.studentName || "",
-                        "Ngày sinh": metadata.dateOfBirth || "",
-                        "Năm TN": metadata.graduationYear || "",
-                        "Ngành ĐT": degree.fieldOfStudy,
-                        Trường: degree.universityName,
-                        "Loại bằng": degree.degreeName,
-                        "Ngày cấp": new Date(
-                            degree.issuedAt
-                        ).toLocaleDateString("vi-VN"),
-                        "Hiệu lực": "Còn hiệu lực",
-                    };
-                })
-            );
+            // Use metadataJson from backend response
+            const tableData = degrees.map((degree, index) => {
+                const metadata = degree.metadataJson || {};
+                return {
+                    STT: index + 1,
+                    "Số hiệu văn bằng": metadata.certificateNumber || "",
+                    "Họ và tên": metadata.studentName || "",
+                    "Ngày sinh": metadata.dateOfBirth || "",
+                    "Năm TN": metadata.graduationYear || "",
+                    "Ngành ĐT": degree.fieldOfStudy || metadata.fieldOfStudy || "",
+                    Trường: degree.universityName || metadata.universityName || "",
+                    "Loại bằng": degree.degreeName || metadata.degreeName || "",
+                    "Ngày cấp": new Date(
+                        degree.issuedAt
+                    ).toLocaleDateString("vi-VN"),
+                    "Hiệu lực": degree.revoked ? "Đã thu hồi" : "Còn hiệu lực",
+                };
+            });
 
+            setAllData(tableData);
             setData(tableData);
 
-            // Fetch PDF files from IPFS
-            const pdfFiles = await Promise.all(
-                degrees.map(async (degree) => {
-                    try {
-                        const metadata =
-                            await blockchainService.fetchMetadataFromURI(
-                                degree.metadataURI
-                            );
-                        const fileCID = metadata.degreeFileCID;
-                        return {
-                            src: `https://${
-                                import.meta.env.VITE_GATEWAY_URL
-                            }/ipfs/${fileCID}`,
-                            alt: `${degree.universityName} - ${degree.degreeName}`,
-                        };
-                    } catch (err) {
-                        console.error("Failed to fetch metadata:", err);
-                        return null;
-                    }
-                })
-            );
+            // Get PDF files from metadataJson
+            const pdfFiles = degrees.map((degree) => {
+                const fileCID = degree.metadataJson?.degreeFileCID;
+                if (!fileCID) return null;
+                return {
+                    src: `https://${
+                        import.meta.env.VITE_GATEWAY_URL
+                    }/ipfs/${fileCID}`,
+                    alt: `${degree.universityName} - ${degree.degreeName}`,
+                };
+            });
 
             setImgFiles(pdfFiles.filter((f) => f !== null));
         } catch (error) {
@@ -98,6 +94,29 @@ export default function StudentPage() {
         fetchMyDegrees();
     }, [blockchain.isWalletConnected]);
 
+    const handleFilterChange = (value) => {
+        setFilterText(value);
+    };
+
+    const handleSearchClick = () => {
+        if (!filterText.trim()) {
+            setData(allData);
+            return;
+        }
+
+        const filtered = allData.filter((item) => {
+            const searchLower = filterText.toLowerCase();
+            return (
+                item["Số hiệu văn bằng"]?.toLowerCase().includes(searchLower) ||
+                item["Họ và tên"]?.toLowerCase().includes(searchLower) ||
+                item["Trường"]?.toLowerCase().includes(searchLower) ||
+                item["Ngành ĐT"]?.toLowerCase().includes(searchLower)
+            );
+        });
+
+        setData(filtered);
+    };
+
     return (
         <>
             <div className="flex flex-col justify-center items-center">
@@ -106,10 +125,10 @@ export default function StudentPage() {
                 {!blockchain.isWalletConnected && (
                     <Button
                         type="type3"
-                        onClick={() => blockchain.connectWallet()}
+                        onClick={() => blockchain.connect()}
                         className="mb-4"
                     >
-                        Connect Wallet
+                        Kết nối ví
                     </Button>
                 )}
 
@@ -120,18 +139,31 @@ export default function StudentPage() {
                     </p>
                 )}
 
+                {blockchain.isWalletConnected && (
+                    <>
+                        <SearchBar onChange={handleFilterChange} />
+                        <Button
+                            className="font-semibold"
+                            type="type3"
+                            onClick={handleSearchClick}
+                        >
+                            Tra cứu
+                        </Button>
+                    </>
+                )}
+
                 {errorMsg && (
                     <div className="text-red-600 mb-4 text-sm">{errorMsg}</div>
                 )}
 
-                {loading && <p className="text-gray-600">Loading degrees...</p>}
+                {loading && <p className="text-gray-600">Đang tải văn bằng...</p>}
 
                 {data.length > 0 ? (
                     <Table data={data} />
                 ) : (
                     !loading &&
                     blockchain.isWalletConnected && (
-                        <p className="text-gray-500">No degrees found</p>
+                        <p className="text-gray-500">Không tìm thấy văn bằng</p>
                     )
                 )}
             </div>

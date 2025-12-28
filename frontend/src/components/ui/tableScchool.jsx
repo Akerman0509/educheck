@@ -1,4 +1,4 @@
-function TableSchool({ type, data, ...props }) {
+function TableSchool({ type, data, onRevoke, ...props }) {
     const borderClass1 = "p-2";
     const borderClass2 = "p-2 w-52 ";
     const titleClass = "py-2 px-4 bg-blue-100 sticky top-0 z-20";
@@ -19,16 +19,17 @@ function TableSchool({ type, data, ...props }) {
                 key={idx}
                 className="odd:bg-white even:bg-gray-200  hover:bg-blue-50"
             >
-                <td className={borderClass1}>{k["Số hiệu văn bằng"]}</td>
-                <td className={borderClass2}>{k["Họ và tên"]}</td>
-                <td className={borderClass1}>{k["Ngày sinh"]}</td>
-                <td className={borderClass1}>{k["Năm TN"]}</td>
-                <td className={borderClass2}>{k["Ngành ĐT"]}</td>
-                <td className={borderClass1}>{k["Thu hồi"]}
+                <td className={borderClass1}>{k.certificateNumber || k["Số hiệu văn bằng"]}</td>
+                <td className={borderClass2}>{k.studentName || k["Họ và tên"]}</td>
+                <td className={borderClass1}>{k.dateOfBirth || k["Ngày sinh"]}</td>
+                <td className={borderClass1}>{k.graduationYear || k["Năm TN"]}</td>
+                <td className={borderClass2}>{k.fieldOfStudy || k["Ngành ĐT"]}</td>
+                <td className={borderClass1}>
                     <div className="w-full h-full flex justify-center items-center">
                         <button
-                            //onClick={() => handleRevoke(k)}
-                            className="flex justify-center items-center w-10 h-10 rounded-full hover:bg-red-100 duration-200 hover:scale-110 focus:outline-none"
+                            onClick={() => onRevoke && onRevoke(k)}
+                            disabled={!onRevoke}
+                            className="flex justify-center items-center w-10 h-10 rounded-full hover:bg-red-100 duration-200 hover:scale-110 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <img
                                 src="/imgButton/remove.png"

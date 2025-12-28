@@ -28,27 +28,23 @@ try {
 
 class HomepageService {
     constructor() {
+        // Read-only provider for querying blockchain if needed
         this.provider = new ethers.JsonRpcProvider(process.env.RPC_URL || "http://localhost:8545");
-        
-                const privateKey = process.env.PRIVATE_KEY;
-                const contractAddress = process.env.CONTRACT_ADDRESS;
+        const contractAddress = process.env.CONTRACT_ADDRESS;
       
-                if (privateKey && privateKey.startsWith('0x') && contractAddress) {
-                    this.wallet = new ethers.Wallet(privateKey, this.provider);
-                    this.contract = new ethers.Contract(
-                        contractAddress,
-                        UniversityDegreesSBT.abi,
-                        this.wallet
-                    );
-                } else {
-                    console.warn("Missing Private Key or Contract Address configuration.");
-                }
+        if (contractAddress) {
+            // Read-only contract instance (no wallet needed)
+            this.contract = new ethers.Contract(
+                contractAddress,
+                UniversityDegreesSBT.abi,
+                this.provider
+            );
+        } else {
+            console.warn("Missing Contract Address configuration.");
+        }
     }
 
     async getDegree(str) {
-        if (!this.contract) {
-            throw new Error("Contract is not initialized.");
-        }
         if (str.startsWith('0x') && str.length === 42) {
             try {
                 // const degrees = await this.contract.getDegreesByStudentAddress(str);
