@@ -21,11 +21,12 @@ gnome-terminal -- bash -c "cd smartcontract && npx hardhat node; exec bash" &
 echo "Starting Ignition deploy in new terminal..."
 gnome-terminal -- bash -c "cd smartcontract && npx hardhat ignition deploy --network $NETWORK ignition/modules/UniversityDegreesSBT.ts; exec bash" &
 
+# Start backend (npm run dev) in a new terminal
+echo "Starting backend: npm run dev (in ./backend)"
+gnome-terminal -- bash -c "cd backend && npm run dev; exec bash" &
+
 # Start frontend (npm run dev) in a new terminal
 echo "Starting frontend: npm run dev (in ./frontend)"
 gnome-terminal -- bash -c "cd frontend && npm run dev; exec bash" &
 
-# Start frontend (npm run dev)
-echo "Starting frontend: npm run dev (in ./frontend)"
-cd frontend
-npm run dev
+echo "All services started in separate terminals."

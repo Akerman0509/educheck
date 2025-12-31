@@ -23,20 +23,13 @@ start "Ignition Deploy" cmd /k "npx hardhat ignition deploy --network !NETWORK! 
 
 popd
 
+REM Start backend (npm run dev) in a new console window
+echo Starting backend: npm run dev (in .\backend)
+start "Backend Dev" cmd /k "cd /d %~dp0backend && npm run dev"
+
 REM Start frontend (npm run dev) in a new console window
 echo Starting frontend: npm run dev (in .\frontend)
 start "Frontend Dev" cmd /k "cd /d %~dp0frontend && npm run dev"
 
-endlocal
-
-REM Deploy with Ignition, using config variables
-echo Running: npx hardhat ignition deploy --network !NETWORK!
-call npx hardhat ignition deploy --network !NETWORK!
-
-REM Start frontend (npm run dev)
-echo Starting frontend: npm run dev (in .\frontend)
-pushd frontend
-call npm run dev
-popd
-
+echo All services started.
 endlocal
