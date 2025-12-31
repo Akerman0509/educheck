@@ -1,18 +1,68 @@
-# React + Vite
+# EduCheck - University Degrees SBT Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A blockchain-based platform for managing university degrees as Soulbound Tokens (SBTs) with backend indexing and React frontend.
 
-Currently, two official plugins are available:
+## Prerequisites
 
--   [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
--   [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Before you begin, ensure you have the following installed:
 
-## React Compiler
+- **Node.js** (v16 or higher)
+- **npm** or **yarn**
+- **Git**
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Manual Setup Instructions
+### Terminal 1: Start Hardhat Node
 
-Note: This will impact Vite dev & build performances.
+```bash
+cd smartcontract
+npx hardhat node
+```
 
-## Expanding the ESLint configuration
+This will start a local blockchain node at `http://127.0.0.1:8545/`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+**Keep this terminal running.**
+
+### Terminal 2: Deploy Smart Contract
+
+Wait for the Hardhat node to be fully running, then in a new terminal:
+
+```bash
+cd smartcontract
+npx hardhat ignition deploy --network localhost ignition/modules/UniversityDegreesSBT.ts
+```
+
+This will deploy the UniversityDegreesSBT contract to your local network.
+
+### Terminal 3: Start Backend Server
+
+```bash
+cd backend
+npm run dev
+```
+
+This will start the backend server with nodemon for hot-reloading.
+
+**Keep this terminal running.**
+
+### Terminal 4: Start Frontend Development Server
+
+```bash
+cd frontend
+npm run dev
+```
+
+This will start the Vite development server. The frontend will typically be available at `http://localhost:5173/`
+
+
+## MetaMask Setup
+
+1. Install MetaMask browser extension
+2. Import one of the test accounts from Hardhat node terminal (it provides 20 accounts with 10000 ETH each)
+3. Add localhost network to MetaMask:
+   - Network Name: `Name of your network`
+   - RPC URL: http://127.0.0.1:8545
+   - Chain ID: 31337
+   - Currency Symbol: ETH
+
+
+
