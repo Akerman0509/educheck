@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract UniversityDegreesSBT is ERC721, AccessControl {
     uint256 private _tokenIdCounter = 1;
+    uint256 private _snapshotIdCounter = 1;
 
     bytes32 public constant MINISTRY_ROLE = keccak256("MINISTRY_ROLE");
     bytes32 public constant UNIVERSITY_ROLE = keccak256("UNIVERSITY_ROLE");
@@ -43,6 +44,11 @@ contract UniversityDegreesSBT is ERC721, AccessControl {
         uint256 indexed tokenId,
         address indexed to,
         address indexed issuer
+    );
+    event StateSnapshot(
+        uint256 indexed snapshotId,
+        uint256 totalDegrees,
+        uint256 timestamp
     );
 
     constructor(
@@ -208,6 +214,19 @@ contract UniversityDegreesSBT is ERC721, AccessControl {
         // delete degree data & burn token
         delete _degreeData[tokenId];
         _burn(tokenId);
+    }
+
+    // ==========================
+    // Snapshots (Ministry)
+    // ==========================
+    /// @notice Ministry triggers a state snapshot for backup purposes
+    function createSnapshot() external onlyRole(MINISTRY_ROLE) {
+        uint256 snapId = _snapshotIdCounter;
+        _snapshotIdCounter++;
+        
+        // Emit event with current totals
+        // The indexer will catch this and perform the actual data backup
+        emit StateSnapshot(snapId, _tokenIdCounter - 1, block.timestamp);
     }
 
     // ==========================
