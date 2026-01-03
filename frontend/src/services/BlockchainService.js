@@ -139,6 +139,14 @@ class BlockchainService {
         }
     }
 
+    // Trigger state snapshot (ministry only)
+    async createSnapshot() {
+        await this._ensureSigner();
+        const tx = await this.contract.createSnapshot();
+        const receipt = await tx.wait();
+        return receipt;
+    }
+
     // Grant UNIVERSITY_ROLE directly (admin fallback)
     async grantUniversityRole(universityAddress) {
         await this._ensureSigner();

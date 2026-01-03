@@ -55,7 +55,8 @@ async function startIndexer() {
         // Suppress ethers.js polling warnings for local development
         const originalConsoleError = console.error;
         console.error = (...args) => {
-            if (args[0]?.includes?.('@TODO') || args[0]?.includes?.('results is not iterable')) {
+            const firstArg = args[0] ? String(args[0]) : "";
+            if (firstArg.includes('@TODO') || firstArg.includes('results is not iterable')) {
                 return; // Suppress known ethers.js local node warning
             }
             originalConsoleError(...args);
@@ -194,13 +195,16 @@ async function handleStateSnapshot(snapshotId, totalDegrees, timestamp, event) {
         const result = await pinata.pinJSONToIPFS(snapshotData, options);
         console.log(`☁️  Snapshot uploaded to IPFS: ${result.IpfsHash}`);
 
-        // 4. Save Record
-        await Snapshot.create({
-            snapshotId: Number(snapshotId),
-            totalDegrees: Number(totalDegrees),
-            snapshotTimestamp: new Date(Number(timestamp) * 1000),
-            ipfsCid: result.IpfsHash
-        });
+        // 4. Save Record (using upsert to avoid duplicate key errors on indexer restarts)
+        await Snapshot.findOneAndUpdate(
+            { snapshotId: Number(snapshotId) },
+            {
+                totalDegrees: Number(totalDegrees),
+                snapshotTimestamp: new Date(Number(timestamp) * 1000),
+                ipfsCid: result.IpfsHash
+            },
+            { upsert: true, new: true }
+        );
 
     } catch (err) {
         console.error(`❌ Error handling StateSnapshot:`, err);
